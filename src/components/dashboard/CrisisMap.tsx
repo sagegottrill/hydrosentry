@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle, useMap } from 'react-leaflet';
+import { useEffect, useRef, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
@@ -52,8 +51,17 @@ const floodIcon = createCustomIcon('#ef4444', 28);
 const boreholeIcon = createCustomIcon('#f59e0b', 24);
 
 // Borno State center coordinates (Maiduguri)
-const BORNO_CENTER: [number, number] = [11.8333, 13.1500];
+const BORNO_CENTER: L.LatLngExpression = [11.8333, 13.1500];
 const DEFAULT_ZOOM = 9;
+
+// Ngadda River path
+const ngaddaRiverPath: L.LatLngExpression[] = [
+  [11.8200, 13.0800],
+  [11.8350, 13.1200],
+  [11.8456, 13.1523],
+  [11.8520, 13.1700],
+  [11.8600, 13.2000]
+];
 
 interface CrisisMapProps {
   season: Season;
@@ -63,206 +71,161 @@ interface CrisisMapProps {
   onDispatch?: (type: string, id: string) => void;
 }
 
-// Component to handle map updates when season changes
-function MapController({ center, zoom }: { center: [number, number]; zoom: number }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, zoom);
-  }, [center, zoom, map]);
-  return null;
-}
-
-// Ngadda River path (simplified for visualization)
-const ngaddaRiverPath: [number, number][] = [
-  [11.8200, 13.0800],
-  [11.8350, 13.1200],
-  [11.8456, 13.1523],
-  [11.8520, 13.1700],
-  [11.8600, 13.2000]
-];
-
-// Separate component for wet season layers
-function WetSeasonLayers({ 
-  riskZones, 
-  onDispatch 
-}: { 
-  riskZones: RiskZone[]; 
-  onDispatch?: (type: string, id: string) => void;
-}) {
-  return (
-    <>
-      <Polyline
-        positions={ngaddaRiverPath}
-        pathOptions={{
-          color: '#ef4444',
-          weight: 8,
-          opacity: 0.6,
-          dashArray: '10, 10'
-        }}
-      />
-      
-      {riskZones.map((zone) => (
-        <Circle
-          key={`circle-${zone.id}`}
-          center={zone.coordinates}
-          radius={500}
-          pathOptions={{
-            color: '#ef4444',
-            fillColor: '#ef4444',
-            fillOpacity: 0.2,
-            weight: 2
-          }}
-        />
-      ))}
-
-      {riskZones.map((zone) => (
-        <Marker
-          key={`marker-${zone.id}`}
-          position={zone.coordinates}
-          icon={floodIcon}
-        >
-          <Popup>
-            <div className="min-w-[200px] p-1">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="h-4 w-4 text-destructive" />
-                <span className="font-semibold text-sm">{zone.name}</span>
-              </div>
-              <div className="space-y-1 text-xs">
-                <p><span className="text-muted-foreground">Blockage Type:</span> {zone.blockageType}</p>
-                <p><span className="text-muted-foreground">Flood Risk:</span> <span className="text-destructive font-medium capitalize">{zone.severity}</span></p>
-                <p className="text-muted-foreground">{zone.description}</p>
-              </div>
-              <Button 
-                size="sm" 
-                className="w-full mt-3 bg-primary hover:bg-primary/90"
-                onClick={() => onDispatch?.('clearance', zone.id)}
-              >
-                <Wrench className="h-3 w-3 mr-1" />
-                Dispatch Clearance Crew
-              </Button>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-    </>
-  );
-}
-
-// Separate component for dry season layers
-function DrySeasonLayers({ 
-  boreholes, 
-  routes,
-  onDispatch 
-}: { 
-  boreholes: Borehole[];
-  routes: Route[];
-  onDispatch?: (type: string, id: string) => void;
-}) {
-  return (
-    <>
-      {routes.map((route) => (
-        <Polyline
-          key={route.id}
-          positions={route.coordinates}
-          pathOptions={{
-            color: '#f59e0b',
-            weight: 4,
-            opacity: 0.7,
-            dashArray: route.status === 'unverified' ? '5, 10' : undefined
-          }}
-        />
-      ))}
-
-      {boreholes.map((borehole) => (
-        <Marker
-          key={borehole.id}
-          position={borehole.coordinates}
-          icon={boreholeIcon}
-        >
-          <Popup>
-            <div className="min-w-[220px] p-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Droplets className="h-4 w-4 text-warning" />
-                <span className="font-semibold text-sm">{borehole.name}</span>
-              </div>
-              <div className="space-y-1.5 text-xs">
-                <p>
-                  <span className="text-muted-foreground">Status:</span>{' '}
-                  <span className="text-destructive font-medium capitalize">{borehole.status.replace('_', ' ')}</span>
-                </p>
-                <p>
-                  <span className="text-muted-foreground">'Atmospheric Thirst' Index:</span>{' '}
-                  <span className="text-destructive font-semibold">{borehole.thirstIndex.toFixed(1)}/10</span>
-                </p>
-                <p>
-                  <span className="text-muted-foreground">CRPD Score:</span>{' '}
-                  <span className="text-destructive font-semibold">{borehole.crpdScore.toFixed(1)}/10</span>
-                </p>
-                <div className="px-2 py-1.5 bg-destructive/10 rounded text-destructive font-medium">
-                  ⚠️ Prediction: High Conflict Risk
-                </div>
-              </div>
-              <Button 
-                size="sm" 
-                variant="outline"
-                className="w-full mt-3 border-warning text-warning hover:bg-warning/10"
-                onClick={() => onDispatch?.('repair', borehole.id)}
-              >
-                Alert Repair Technician
-              </Button>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-    </>
-  );
-}
-
-// Map content component that uses the Leaflet context
-function MapContent({ 
-  season, 
-  riskZones, 
-  boreholes, 
-  routes, 
-  onDispatch 
-}: CrisisMapProps) {
-  return (
-    <>
-      <MapController center={BORNO_CENTER} zoom={DEFAULT_ZOOM} />
-      
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-      />
-
-      {season === 'wet' && (
-        <WetSeasonLayers riskZones={riskZones} onDispatch={onDispatch} />
-      )}
-
-      {season === 'dry' && (
-        <DrySeasonLayers boreholes={boreholes} routes={routes} onDispatch={onDispatch} />
-      )}
-    </>
-  );
-}
-
 export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: CrisisMapProps) {
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const layersRef = useRef<L.LayerGroup | null>(null);
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    // Create map
+    const map = L.map(mapContainerRef.current, {
+      center: BORNO_CENTER,
+      zoom: DEFAULT_ZOOM,
+      zoomControl: true
+    });
+
+    // Add tile layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(map);
+
+    // Create layer group for seasonal content
+    layersRef.current = L.layerGroup().addTo(map);
+    mapRef.current = map;
+
+    // Cleanup
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      layersRef.current = null;
+    };
+  }, []);
+
+  // Update layers when season or data changes
+  useEffect(() => {
+    if (!mapRef.current || !layersRef.current) return;
+
+    // Clear existing layers
+    layersRef.current.clearLayers();
+
+    if (season === 'wet') {
+      // Add river danger zone polyline
+      const riverLine = L.polyline(ngaddaRiverPath, {
+        color: '#ef4444',
+        weight: 8,
+        opacity: 0.6,
+        dashArray: '10, 10'
+      });
+      layersRef.current.addLayer(riverLine);
+
+      // Add flood zone circles and markers
+      riskZones.forEach((zone) => {
+        // Circle
+        const circle = L.circle(zone.coordinates, {
+          radius: 500,
+          color: '#ef4444',
+          fillColor: '#ef4444',
+          fillOpacity: 0.2,
+          weight: 2
+        });
+        layersRef.current?.addLayer(circle);
+
+        // Marker with popup
+        const marker = L.marker(zone.coordinates, { icon: floodIcon });
+        marker.bindPopup(`
+          <div style="min-width: 200px; padding: 4px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+              <span style="font-weight: 600; font-size: 14px;">${zone.name}</span>
+            </div>
+            <div style="font-size: 12px; line-height: 1.5;">
+              <p><span style="color: #64748b;">Blockage Type:</span> ${zone.blockageType}</p>
+              <p><span style="color: #64748b;">Flood Risk:</span> <span style="color: #ef4444; font-weight: 500; text-transform: capitalize;">${zone.severity}</span></p>
+              <p style="color: #64748b; margin-top: 4px;">${zone.description}</p>
+            </div>
+            <button 
+              onclick="window.dispatchCrisisAction('clearance', '${zone.id}')"
+              style="width: 100%; margin-top: 12px; padding: 8px 16px; background: #009EDB; color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;"
+            >
+              🔧 Dispatch Clearance Crew
+            </button>
+          </div>
+        `);
+        layersRef.current?.addLayer(marker);
+      });
+    } else {
+      // Dry season - herder routes
+      routes.forEach((route) => {
+        const line = L.polyline(route.coordinates, {
+          color: '#f59e0b',
+          weight: 4,
+          opacity: 0.7,
+          dashArray: route.status === 'unverified' ? '5, 10' : undefined
+        });
+        layersRef.current?.addLayer(line);
+      });
+
+      // Borehole markers
+      boreholes.forEach((borehole) => {
+        const marker = L.marker(borehole.coordinates, { icon: boreholeIcon });
+        marker.bindPopup(`
+          <div style="min-width: 220px; padding: 4px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+              </svg>
+              <span style="font-weight: 600; font-size: 14px;">${borehole.name}</span>
+            </div>
+            <div style="font-size: 12px; line-height: 1.8;">
+              <p>
+                <span style="color: #64748b;">Status:</span> 
+                <span style="color: #ef4444; font-weight: 500; text-transform: capitalize;">${borehole.status.replace('_', ' ')}</span>
+              </p>
+              <p>
+                <span style="color: #64748b;">'Atmospheric Thirst' Index:</span> 
+                <span style="color: #ef4444; font-weight: 600;">${borehole.thirstIndex.toFixed(1)}/10</span>
+              </p>
+              <p>
+                <span style="color: #64748b;">CRPD Score:</span> 
+                <span style="color: #ef4444; font-weight: 600;">${borehole.crpdScore.toFixed(1)}/10</span>
+              </p>
+              <div style="padding: 8px 12px; background: rgba(239, 68, 68, 0.1); border-radius: 4px; color: #ef4444; font-weight: 500; margin-top: 8px;">
+                ⚠️ Prediction: High Conflict Risk
+              </div>
+            </div>
+            <button 
+              onclick="window.dispatchCrisisAction('repair', '${borehole.id}')"
+              style="width: 100%; margin-top: 12px; padding: 8px 16px; background: transparent; color: #f59e0b; border: 2px solid #f59e0b; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;"
+            >
+              Alert Repair Technician
+            </button>
+          </div>
+        `);
+        layersRef.current?.addLayer(marker);
+      });
+    }
+  }, [season, riskZones, boreholes, routes]);
+
+  // Set up dispatch handler on window
+  useEffect(() => {
+    (window as any).dispatchCrisisAction = (type: string, id: string) => {
+      onDispatch?.(type, id);
+    };
+    return () => {
+      delete (window as any).dispatchCrisisAction;
+    };
+  }, [onDispatch]);
+
   return (
     <div className="relative h-full w-full rounded-lg overflow-hidden border border-border">
-      <MapContainer
-        center={BORNO_CENTER}
-        zoom={DEFAULT_ZOOM}
-        className="h-full w-full"
-        zoomControl={true}
-      >
-        <MapContent 
-          season={season} 
-          riskZones={riskZones} 
-          boreholes={boreholes} 
-          routes={routes} 
-          onDispatch={onDispatch} 
-        />
-      </MapContainer>
+      <div ref={mapContainerRef} className="h-full w-full" />
 
       {/* Map Legend */}
       <div className="absolute bottom-4 left-4 bg-card/95 backdrop-blur-sm rounded-lg shadow-lg border border-border p-3 z-[1000]">
