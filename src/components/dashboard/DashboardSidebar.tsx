@@ -18,16 +18,67 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { id: 'overview', label: 'Overview', icon: LayoutDashboard, path: '/dashboard' },
-  { id: 'wet-season', label: 'Wet Season (Flood Shield)', icon: Droplets, path: '/dashboard/wet' },
-  { id: 'dry-season', label: 'Dry Season (Conflict Engine)', icon: Sun, path: '/dashboard/dry' },
-  { id: 'dispatcher', label: 'Dispatcher', icon: Send, path: '/dashboard/dispatcher' },
-  { id: 'settings', label: 'Settings', icon: Settings, path: '/dashboard/settings' },
+  { 
+    id: 'overview', 
+    label: 'Overview', 
+    icon: LayoutDashboard, 
+    path: '/dashboard',
+    description: 'Main dashboard view'
+  },
+  { 
+    id: 'wet-season', 
+    label: 'Wet Season (Flood Shield)', 
+    icon: Droplets, 
+    path: '/dashboard?season=wet',
+    description: 'Flood monitoring mode'
+  },
+  { 
+    id: 'dry-season', 
+    label: 'Dry Season (Conflict Engine)', 
+    icon: Sun, 
+    path: '/dashboard?season=dry',
+    description: 'Drought & conflict mode'
+  },
+  { 
+    id: 'dispatcher', 
+    label: 'Dispatcher', 
+    icon: Send, 
+    path: '/dispatcher',
+    description: 'Work order management'
+  },
+  { 
+    id: 'settings', 
+    label: 'Settings', 
+    icon: Settings, 
+    path: '/settings',
+    description: 'System configuration'
+  },
 ];
 
 export function DashboardSidebar({ collapsed, onToggle }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isActive = (item: typeof navItems[0]) => {
+    const currentPath = location.pathname + location.search;
+    
+    // Exact match for dispatcher and settings
+    if (item.path === '/dispatcher' || item.path === '/settings') {
+      return location.pathname === item.path;
+    }
+    
+    // For wet/dry season links, check for query param
+    if (item.path.includes('?season=')) {
+      return currentPath === item.path;
+    }
+    
+    // Overview is active when on /dashboard without season param
+    if (item.path === '/dashboard') {
+      return location.pathname === '/dashboard' && !location.search.includes('season=');
+    }
+    
+    return false;
+  };
 
   return (
     <aside 
@@ -55,8 +106,7 @@ export function DashboardSidebar({ collapsed, onToggle }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path || 
-            (item.path === '/dashboard' && location.pathname === '/dashboard');
+          const active = isActive(item);
           const Icon = item.icon;
           
           return (
@@ -65,13 +115,17 @@ export function DashboardSidebar({ collapsed, onToggle }: SidebarProps) {
               onClick={() => navigate(item.path)}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
-                isActive 
+                active 
                   ? "bg-sidebar-accent text-sidebar-primary" 
                   : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
               )}
               title={collapsed ? item.label : undefined}
             >
-              <Icon className="h-5 w-5 flex-shrink-0" />
+              <Icon className={cn(
+                "h-5 w-5 flex-shrink-0",
+                active && item.id === 'wet-season' && "text-primary",
+                active && item.id === 'dry-season' && "text-warning"
+              )} />
               {!collapsed && <span className="truncate">{item.label}</span>}
             </button>
           );

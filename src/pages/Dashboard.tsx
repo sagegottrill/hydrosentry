@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { CrisisMap } from '@/components/dashboard/CrisisMap';
@@ -6,8 +7,10 @@ import { SeasonToggle } from '@/components/dashboard/SeasonToggle';
 import { ActionDispatcher } from '@/components/dashboard/ActionDispatcher';
 import { useHydroData, useAlerts } from '@/hooks/useHydroData';
 import { useToast } from '@/hooks/use-toast';
+import type { Season } from '@/types/hydrosentry';
 
 export default function Dashboard() {
+  const [searchParams] = useSearchParams();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { toast } = useToast();
   
@@ -22,6 +25,14 @@ export default function Dashboard() {
   } = useHydroData();
   
   const { alerts, dispatchAction } = useAlerts();
+
+  // Handle forced season from URL
+  useEffect(() => {
+    const forcedSeason = searchParams.get('season') as Season | null;
+    if (forcedSeason && (forcedSeason === 'wet' || forcedSeason === 'dry')) {
+      setSeason(forcedSeason);
+    }
+  }, [searchParams, setSeason]);
 
   // Filter alerts by current season
   const seasonAlerts = alerts.filter(a => a.season === season);
@@ -75,28 +86,28 @@ export default function Dashboard() {
               value={formatCurrency(metrics.floodRiskValue.amount)}
               trend={metrics.floodRiskValue.trend}
               sparklineData={sparklineData.floodRisk}
-              sparklineColor="hsl(var(--destructive))"
+              sparklineColor="hsl(0 84% 60%)"
             />
             <MetricCard
               title="Active Borehole Failures"
               value={`${metrics.boreholeFailures.count} Sites`}
               status={metrics.boreholeFailures.status === 'stable' ? 'neutral' : metrics.boreholeFailures.status}
               sparklineData={sparklineData.boreholeFailures}
-              sparklineColor="hsl(var(--warning))"
+              sparklineColor="hsl(38 92% 50%)"
             />
             <MetricCard
               title="Conflict Probability (7-Day)"
               value={`${metrics.conflictProbability.percentage}% ${metrics.conflictProbability.level.charAt(0).toUpperCase() + metrics.conflictProbability.level.slice(1)}`}
               subtitle={metrics.conflictProbability.location}
               sparklineData={sparklineData.conflictProb}
-              sparklineColor="hsl(var(--warning))"
+              sparklineColor="hsl(38 92% 50%)"
             />
             <MetricCard
               title="Safe Corridors Active"
               value={`${metrics.safeCorridors.count} Routes`}
               status="success"
               sparklineData={sparklineData.corridors}
-              sparklineColor="hsl(var(--success))"
+              sparklineColor="hsl(142 76% 36%)"
             />
           </div>
         </div>
