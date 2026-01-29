@@ -459,8 +459,8 @@ export default function Dispatcher() {
                               </Badge>
                             </TableCell>
                             <TableCell className="font-medium">{order.issueType}</TableCell>
-                            <TableCell className="text-muted-foreground">{order.location}</TableCell>
-                            <TableCell className="font-medium">
+                            <TableCell>{order.location}</TableCell>
+                            <TableCell className="font-bold text-foreground">
                               {formatCurrency(order.estimatedCost)}
                             </TableCell>
                             <TableCell>

@@ -164,7 +164,7 @@ export default function Settings() {
                       Trigger alerts when flood probability exceeds threshold
                     </p>
                   </div>
-                  <span className="text-2xl font-bold text-destructive">
+                  <span className="text-3xl font-bold text-destructive">
                     {settings.thresholds.floodSensitivity}%
                   </span>
                 </div>
@@ -193,7 +193,7 @@ export default function Settings() {
                       Drought severity threshold for borehole priority alerts
                     </p>
                   </div>
-                  <span className="text-2xl font-bold text-warning">
+                  <span className="text-3xl font-bold text-warning">
                     {settings.thresholds.droughtIndex}%
                   </span>
                 </div>
@@ -222,7 +222,7 @@ export default function Settings() {
                       Alert when herder-farmer conflict probability exceeds level
                     </p>
                   </div>
-                  <span className="text-2xl font-bold text-primary">
+                  <span className="text-3xl font-bold text-primary">
                     {settings.thresholds.conflictThreshold}%
                   </span>
                 </div>
@@ -371,14 +371,14 @@ export default function Settings() {
                         <span className="text-xs text-muted-foreground">
                           Synced {source.lastSync}
                         </span>
-                        <div className="flex items-center gap-1.5">
+                        <div className={cn(
+                          "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-bold capitalize",
+                          source.status === 'online' && "bg-success/20 text-success",
+                          source.status === 'offline' && "bg-destructive/20 text-destructive",
+                          source.status === 'degraded' && "bg-warning/20 text-warning"
+                        )}>
                           {getStatusIcon(source.status)}
-                          <span className={cn(
-                            "text-sm font-medium capitalize",
-                            getStatusColor(source.status)
-                          )}>
-                            {source.status}
-                          </span>
+                          {source.status}
                         </div>
                         <Button 
                           variant="ghost" 
