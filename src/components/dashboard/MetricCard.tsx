@@ -56,7 +56,7 @@ export function MetricCard({
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               {title}
             </p>
-            <p className="text-2xl font-bold text-foreground">
+            <p className="text-3xl font-bold text-foreground tracking-tight">
               {value}
             </p>
             

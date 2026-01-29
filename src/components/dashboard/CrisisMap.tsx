@@ -112,24 +112,24 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: 
     layersRef.current.clearLayers();
 
     if (season === 'wet') {
-      // Add river danger zone polyline
+      // Add river danger zone polyline - thicker for video
       const riverLine = L.polyline(ngaddaRiverPath, {
         color: '#ef4444',
-        weight: 8,
-        opacity: 0.6,
-        dashArray: '10, 10'
+        weight: 10,
+        opacity: 0.7,
+        dashArray: '12, 12'
       });
       layersRef.current.addLayer(riverLine);
 
       // Add flood zone circles and markers
       riskZones.forEach((zone) => {
-        // Circle
+        // Circle - more opaque for video visibility
         const circle = L.circle(zone.coordinates, {
           radius: 500,
           color: '#ef4444',
           fillColor: '#ef4444',
-          fillOpacity: 0.2,
-          weight: 2
+          fillOpacity: 0.45,
+          weight: 3
         });
         layersRef.current?.addLayer(circle);
 
@@ -165,9 +165,9 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: 
       routes.forEach((route) => {
         const line = L.polyline(route.coordinates, {
           color: '#f59e0b',
-          weight: 4,
-          opacity: 0.7,
-          dashArray: route.status === 'unverified' ? '5, 10' : undefined
+          weight: 6,
+          opacity: 0.9,
+          dashArray: route.status === 'unverified' ? '8, 12' : undefined
         });
         layersRef.current?.addLayer(line);
       });
