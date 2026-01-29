@@ -55,15 +55,15 @@ import { cn } from '@/lib/utils';
 const priorityConfig = {
   critical: { 
     label: 'Critical', 
-    className: 'bg-destructive text-destructive-foreground' 
+    className: 'bg-destructive text-destructive-foreground font-bold' 
   },
   high: { 
     label: 'High', 
-    className: 'bg-warning text-warning-foreground' 
+    className: 'bg-warning text-warning-foreground font-bold' 
   },
   normal: { 
     label: 'Normal', 
-    className: 'bg-primary text-primary-foreground' 
+    className: 'bg-primary text-primary-foreground font-semibold' 
   }
 };
 
