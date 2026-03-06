@@ -1,12 +1,16 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Droplets, 
-  Sun, 
-  Send, 
-  Settings, 
-  User, 
-  ChevronLeft
+import {
+  LayoutDashboard,
+  Droplets,
+  Sun,
+  Send,
+  Settings,
+  User,
+  ChevronLeft,
+  Radio,
+  BarChart3,
+  Bell,
+  Users
 } from 'lucide-react';
 import { HydroSentryLogo } from '@/components/HydroSentryLogo';
 import { Button } from '@/components/ui/button';
@@ -18,38 +22,66 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { 
-    id: 'overview', 
-    label: 'Overview', 
-    icon: LayoutDashboard, 
+  {
+    id: 'overview',
+    label: 'Overview',
+    icon: LayoutDashboard,
     path: '/dashboard',
     description: 'Main dashboard view'
   },
-  { 
-    id: 'wet-season', 
-    label: 'Wet Season (Flood Shield)', 
-    icon: Droplets, 
+  {
+    id: 'wet-season',
+    label: 'Wet Season (Flood Shield)',
+    icon: Droplets,
     path: '/dashboard?season=wet',
     description: 'Flood monitoring mode'
   },
-  { 
-    id: 'dry-season', 
-    label: 'Dry Season (Conflict Engine)', 
-    icon: Sun, 
+  {
+    id: 'dry-season',
+    label: 'Dry Season (Conflict Engine)',
+    icon: Sun,
     path: '/dashboard?season=dry',
     description: 'Drought & conflict mode'
   },
-  { 
-    id: 'dispatcher', 
-    label: 'Dispatcher', 
-    icon: Send, 
+  {
+    id: 'sensors',
+    label: 'Sensor Network',
+    icon: Radio,
+    path: '/sensors',
+    description: 'Live LoRaWAN node health'
+  },
+  {
+    id: 'analytics',
+    label: 'Water Level Analytics',
+    icon: BarChart3,
+    path: '/analytics',
+    description: 'Hydrological data charts'
+  },
+  {
+    id: 'alerts',
+    label: 'Alert History',
+    icon: Bell,
+    path: '/alerts',
+    description: 'Alert timeline & SMS log'
+  },
+  {
+    id: 'wardens',
+    label: 'Sensor Wardens',
+    icon: Users,
+    path: '/wardens',
+    description: 'Youth employment program'
+  },
+  {
+    id: 'dispatcher',
+    label: 'Dispatcher',
+    icon: Send,
     path: '/dispatcher',
     description: 'Work order management'
   },
-  { 
-    id: 'settings', 
-    label: 'Settings', 
-    icon: Settings, 
+  {
+    id: 'settings',
+    label: 'Settings',
+    icon: Settings,
     path: '/settings',
     description: 'System configuration'
   },
@@ -61,27 +93,23 @@ export function DashboardSidebar({ collapsed, onToggle }: SidebarProps) {
 
   const isActive = (item: typeof navItems[0]) => {
     const currentPath = location.pathname + location.search;
-    
-    // Exact match for dispatcher and settings
-    if (item.path === '/dispatcher' || item.path === '/settings') {
-      return location.pathname === item.path;
-    }
-    
+
     // For wet/dry season links, check for query param
     if (item.path.includes('?season=')) {
       return currentPath === item.path;
     }
-    
+
     // Overview is active when on /dashboard without season param
     if (item.path === '/dashboard') {
       return location.pathname === '/dashboard' && !location.search.includes('season=');
     }
-    
-    return false;
+
+    // Exact pathname match for all other routes
+    return location.pathname === item.path;
   };
 
   return (
-    <aside 
+    <aside
       className={cn(
         "h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300",
         collapsed ? "w-16" : "w-64"
@@ -108,15 +136,15 @@ export function DashboardSidebar({ collapsed, onToggle }: SidebarProps) {
         {navItems.map((item) => {
           const active = isActive(item);
           const Icon = item.icon;
-          
+
           return (
             <button
               key={item.id}
               onClick={() => navigate(item.path)}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
-                active 
-                  ? "bg-sidebar-accent text-sidebar-primary" 
+                active
+                  ? "bg-sidebar-accent text-sidebar-primary"
                   : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
               )}
               title={collapsed ? item.label : undefined}
