@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Activity } from 'lucide-react';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { cn } from '@/lib/utils';
 
@@ -24,83 +24,93 @@ export function MetricCard({
 }: MetricCardProps) {
   const statusConfig = {
     critical: {
-      badge: 'bg-destructive/10 text-destructive border-destructive/20',
+      color: 'bg-rose-500',
+      textColor: 'text-rose-600',
       icon: AlertTriangle,
       label: 'Critical'
     },
     warning: {
-      badge: 'bg-warning/10 text-warning border-warning/20',
+      color: 'bg-amber-500',
+      textColor: 'text-amber-600',
       icon: AlertTriangle,
       label: 'Warning'
     },
     success: {
-      badge: 'bg-success/10 text-success border-success/20',
+      color: 'bg-emerald-500',
+      textColor: 'text-emerald-600',
       icon: CheckCircle,
       label: 'Verified'
     },
     neutral: {
-      badge: 'bg-muted text-muted-foreground border-border',
+      color: 'bg-slate-300',
+      textColor: 'text-slate-600',
       icon: null,
       label: ''
     }
   };
 
   const config = statusConfig[status];
-  const StatusIcon = config.icon;
+  const StatusIcon = config.icon || Activity;
 
   return (
-    <Card className="relative overflow-hidden">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start">
-          <div className="space-y-1 flex-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              {title}
-            </p>
-            <p className="text-3xl font-bold text-foreground tracking-tight">
+    <div className="relative bg-white rounded-2xl shadow-soft hover:shadow-lifted transition-all duration-300 group flex flex-col h-full overflow-hidden">
+      {/* Optional Top Accent Line */}
+      {status !== 'neutral' && (
+        <div className={`absolute top-0 left-0 right-0 h-1 transition-colors ${config.color}`} />
+      )}
+
+      <div className="p-6 flex flex-col h-full">
+        {/* Header Row: Title & Top-Right Icon */}
+        <div className="flex items-start justify-between mb-5">
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
+            {title}
+          </p>
+          <div className={cn(
+            "w-9 h-9 flex items-center justify-center rounded-xl",
+            status !== 'neutral' ? config.color.replace('bg-', 'bg-').replace('500', '100') : "bg-[#005587]/10"
+          )}>
+            <StatusIcon className={cn(
+              "h-4 w-4",
+              status !== 'neutral' ? config.textColor : "text-[#005587]"
+            )} />
+          </div>
+        </div>
+
+        {/* Content Row: Value & Sparkline */}
+        <div className="flex items-end justify-between flex-1">
+          <div>
+            <p className="text-3xl font-extrabold text-slate-900 tracking-tight tabular-nums font-display">
               {value}
             </p>
-            
-            <div className="flex items-center gap-2 flex-wrap">
+
+            {/* Badges and Subtitles Below Value */}
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
               {trend !== undefined && (
                 <span className={cn(
-                  "flex items-center text-xs font-medium gap-0.5",
-                  trend > 0 ? "text-destructive" : "text-success"
+                  "flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full",
+                  trend > 0 ? "bg-rose-50 text-rose-600" : "bg-emerald-50 text-emerald-600"
                 )}>
-                  {trend > 0 ? (
-                    <TrendingUp className="h-3 w-3" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3" />
-                  )}
+                  {trend > 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
                   {Math.abs(trend)}%
                 </span>
               )}
-              
-              {status !== 'neutral' && (
-                <span className={cn(
-                  "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium border",
-                  config.badge
-                )}>
-                  {StatusIcon && <StatusIcon className="h-3 w-3" />}
-                  {config.label}
-                </span>
-              )}
-              
+
               {subtitle && (
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-slate-500 font-medium">
                   {subtitle}
                 </span>
               )}
             </div>
           </div>
 
-          {/* Sparkline */}
+          {/* Sparkline anchored bottom-right */}
           {sparklineData && (
-            <div className="w-20 h-12 ml-2">
+            <div className="w-24 h-12 ml-4 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={sparklineData}>
                   <defs>
                     <linearGradient id={`gradient-${title.replace(/\s/g, '')}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={sparklineColor} stopOpacity={0.3} />
+                      <stop offset="0%" stopColor={sparklineColor} stopOpacity={0.2} />
                       <stop offset="100%" stopColor={sparklineColor} stopOpacity={0} />
                     </linearGradient>
                   </defs>
@@ -108,7 +118,7 @@ export function MetricCard({
                     type="monotone"
                     dataKey="value"
                     stroke={sparklineColor}
-                    strokeWidth={1.5}
+                    strokeWidth={2}
                     fill={`url(#gradient-${title.replace(/\s/g, '')})`}
                   />
                 </AreaChart>
@@ -116,7 +126,7 @@ export function MetricCard({
             </div>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

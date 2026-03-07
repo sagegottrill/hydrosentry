@@ -224,32 +224,32 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: 
   }, [onDispatch]);
 
   return (
-    <div className="relative h-full w-full rounded-lg overflow-hidden border border-border">
-      <div ref={mapContainerRef} className="h-full w-full" />
+    <div className="relative h-full w-full rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-50">
+      <div ref={mapContainerRef} className="h-full w-full opacity-95" />
 
       {/* Map Legend */}
-      <div className="absolute bottom-4 left-4 bg-card/95 backdrop-blur-sm rounded-lg shadow-lg border border-border p-3 z-[1000]">
-        <p className="text-xs font-semibold text-foreground mb-2">Legend</p>
+      <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-sm border border-slate-200 p-4 z-[1000] min-w-[180px]">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Map Legend</p>
         {season === 'wet' ? (
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-destructive" />
-              <span className="text-xs text-muted-foreground">Flood Risk Zone</span>
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
+              <span className="text-xs font-bold text-slate-700">Flood Risk Zone</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-0.5 bg-destructive opacity-60" style={{ borderStyle: 'dashed' }} />
-              <span className="text-xs text-muted-foreground">Ngadda River Path</span>
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-0.5 bg-rose-500 opacity-60" style={{ borderStyle: 'dashed' }} />
+              <span className="text-xs font-bold text-slate-700">Ngadda River Path</span>
             </div>
           </div>
         ) : (
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-warning" />
-              <span className="text-xs text-muted-foreground">Failed Borehole</span>
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+              <span className="text-xs font-bold text-slate-700">Failed Borehole</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-0.5 bg-warning" />
-              <span className="text-xs text-muted-foreground">Herder Route</span>
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-1 bg-amber-500 rounded-full" />
+              <span className="text-xs font-bold text-slate-700">Herder Route</span>
             </div>
           </div>
         )}

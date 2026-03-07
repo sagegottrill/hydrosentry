@@ -111,18 +111,18 @@ export function DashboardSidebar({ collapsed, onToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300",
+        "h-screen bg-white flex flex-col transition-all duration-300 shadow-sm z-30",
         collapsed ? "w-16" : "w-64"
       )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
+      <div className="h-16 px-4 flex items-center justify-between">
         {!collapsed && <HydroSentryLogo size="small" />}
         <Button
           variant="ghost"
           size="icon"
           onClick={onToggle}
-          className="h-8 w-8 text-sidebar-foreground hover:bg-sidebar-accent"
+          className="h-8 w-8 text-slate-500 hover:bg-slate-200 hover:text-slate-700 rounded-lg"
         >
           <ChevronLeft className={cn(
             "h-4 w-4 transition-transform",
@@ -132,7 +132,10 @@ export function DashboardSidebar({ collapsed, onToggle }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
+      <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+        <div className="mb-4 px-2">
+          {!collapsed && <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Command Center</p>}
+        </div>
         {navItems.map((item) => {
           const active = isActive(item);
           const Icon = item.icon;
@@ -142,45 +145,22 @@ export function DashboardSidebar({ collapsed, onToggle }: SidebarProps) {
               key={item.id}
               onClick={() => navigate(item.path)}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
+                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group",
                 active
-                  ? "bg-sidebar-accent text-sidebar-primary"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                  ? "bg-[#005587]/10 text-[#005587] shadow-sm ring-1 ring-[#005587]/20"
+                  : "text-slate-500 hover:bg-slate-200 hover:text-slate-900"
               )}
               title={collapsed ? item.label : undefined}
             >
               <Icon className={cn(
-                "h-5 w-5 flex-shrink-0",
-                active && item.id === 'wet-season' && "text-primary",
-                active && item.id === 'dry-season' && "text-warning"
+                "h-5 w-5 flex-shrink-0 transition-colors",
+                active ? "text-[#005587]" : "text-slate-400 group-hover:text-slate-600"
               )} />
               {!collapsed && <span className="truncate">{item.label}</span>}
             </button>
           );
         })}
       </nav>
-
-      {/* User Profile */}
-      <div className="p-3 border-t border-sidebar-border">
-        <div className={cn(
-          "flex items-center gap-3 px-2 py-2 rounded-md bg-sidebar-accent/50",
-          collapsed && "justify-center"
-        )}>
-          <div className="h-8 w-8 rounded-full bg-sidebar-primary flex items-center justify-center">
-            <User className="h-4 w-4 text-sidebar-primary-foreground" />
-          </div>
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">
-                Admin
-              </p>
-              <p className="text-xs text-muted-foreground truncate">
-                BOSEPA Command
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
     </aside>
   );
 }

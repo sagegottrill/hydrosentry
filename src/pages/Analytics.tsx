@@ -41,209 +41,209 @@ export default function Analytics() {
 
     return (
         <DashboardLayout>
-            <div className="min-h-screen bg-secondary/30 p-6">
-                <div className="max-w-7xl mx-auto space-y-6">
-                    {/* Header */}
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                            <BarChart3 className="h-7 w-7 text-primary" />
-                            Water Level Analytics
-                        </h1>
-                        <p className="text-muted-foreground mt-1">
-                            Real-time hydrological data and threshold monitoring across all sensor nodes
-                        </p>
-                    </div>
+            <div className="max-w-7xl mx-auto py-8 px-6 space-y-6">
+                {/* Header */}
+                <div className="border-b border-slate-200 pb-4">
+                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3 tracking-tight">
+                        <BarChart3 className="h-6 w-6 text-[#005587]" />
+                        Water Level Analytics
+                    </h1>
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1.5">
+                        Real-time hydrological data and threshold monitoring
+                    </p>
+                </div>
 
-                    {/* Live indicator */}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
-                        </span>
-                        <span>Live — streaming data from {waterNodes.length} water-level sensors</span>
-                    </div>
-
-                    {/* Main Chart — Focus Sensor */}
-                    <Card className="overflow-hidden">
-                        <CardHeader className="pb-2">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <CardTitle className="flex items-center gap-2 text-lg">
-                                        <TrendingUp className="h-5 w-5 text-primary" />
-                                        {focusNode.name}
-                                        <Badge
-                                            variant="outline"
-                                            className={cn(
-                                                'ml-2 text-xs',
-                                                focusNode.status === 'critical' && 'bg-destructive/10 text-destructive border-destructive/30',
-                                                focusNode.status === 'warning' && 'bg-warning/10 text-warning border-warning/30',
-                                                focusNode.status === 'online' && 'bg-success/10 text-success border-success/30',
-                                            )}
-                                        >
-                                            {focusNode.currentReading.toFixed(2)}{focusNode.readingUnit}
-                                        </Badge>
-                                    </CardTitle>
-                                    <CardDescription>{focusNode.location} — {focusNode.id}</CardDescription>
-                                </div>
-                                <div className="text-right">
-                                    <p className={cn(
-                                        'text-3xl font-bold tabular-nums',
-                                        focusNode.status === 'critical' ? 'text-destructive' :
-                                            focusNode.status === 'warning' ? 'text-warning' : 'text-foreground',
+                {/* Live indicator */}
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#005587] bg-sky-50 border border-sky-100 py-1.5 px-3 rounded-full w-fit">
+                    <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#005587] opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#005587]" />
+                    </span>
+                    <span>Live Sync — {waterNodes.length} sensors active</span>
+                </div>
+                {/* Main Chart — Focus Sensor */}
+                <div className="bg-white rounded-xl shadow-soft overflow-hidden">
+                    <div className="p-6 pb-2">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 tracking-tight">
+                                    <TrendingUp className="h-5 w-5 text-[#005587]" />
+                                    {focusNode.name}
+                                    <span className={cn(
+                                        'ml-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase',
+                                        focusNode.status === 'critical' ? 'bg-rose-50 text-rose-700' :
+                                            focusNode.status === 'warning' ? 'bg-amber-50 text-amber-700' :
+                                                'bg-emerald-50 text-emerald-700'
                                     )}>
-                                        {focusNode.currentReading.toFixed(2)}
-                                        <span className="text-base font-normal text-muted-foreground ml-1">{focusNode.readingUnit}</span>
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">Current Reading</p>
-                                </div>
+                                        {focusNode.currentReading.toFixed(2)}{focusNode.readingUnit}
+                                    </span>
+                                </h2>
+                                <p className="text-xs font-medium text-slate-500 mt-1 uppercase tracking-widest">{focusNode.location} — {focusNode.id}</p>
                             </div>
-                        </CardHeader>
-                        <CardContent className="pr-2">
-                            <div className="h-80">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={focusHistory} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                        <defs>
-                                            <linearGradient id="waterGradient" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="hsl(199, 100%, 43%)" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="hsl(199, 100%, 43%)" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                                        <XAxis
-                                            dataKey="time"
-                                            tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                                            interval={Math.max(Math.floor(focusHistory.length / 12), 1)}
-                                        />
-                                        <YAxis
-                                            tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                                            domain={[0, 6]}
-                                            tickFormatter={v => `${v}m`}
-                                        />
-                                        <Tooltip
-                                            contentStyle={{
-                                                backgroundColor: 'hsl(var(--card))',
-                                                border: '1px solid hsl(var(--border))',
-                                                borderRadius: 8,
-                                                fontSize: 12,
-                                            }}
-                                            formatter={(val: number) => [`${val.toFixed(2)}m`, 'Water Level']}
-                                        />
-                                        {/* Warning threshold */}
-                                        <ReferenceLine
-                                            y={focusNode.warningThreshold}
-                                            stroke="hsl(38, 92%, 50%)"
-                                            strokeDasharray="8 4"
-                                            strokeWidth={2}
-                                            label={{
-                                                value: `Warning (${focusNode.warningThreshold}m)`,
-                                                position: 'insideTopRight',
-                                                fill: 'hsl(38, 92%, 50%)',
-                                                fontSize: 11,
-                                            }}
-                                        />
-                                        {/* Critical threshold */}
-                                        <ReferenceLine
-                                            y={focusNode.criticalThreshold}
-                                            stroke="hsl(0, 84%, 60%)"
-                                            strokeDasharray="8 4"
-                                            strokeWidth={2}
-                                            label={{
-                                                value: `Critical (${focusNode.criticalThreshold}m)`,
-                                                position: 'insideTopRight',
-                                                fill: 'hsl(0, 84%, 60%)',
-                                                fontSize: 11,
-                                            }}
-                                        />
-                                        <Area
-                                            type="monotone"
-                                            dataKey="value"
-                                            stroke="hsl(199, 100%, 43%)"
-                                            strokeWidth={2}
-                                            fill="url(#waterGradient)"
-                                            dot={false}
-                                            isAnimationActive={false}
-                                        />
-                                    </AreaChart>
-                                </ResponsiveContainer>
+                            <div className="text-right">
+                                <p className={cn(
+                                    'text-4xl font-extrabold tabular-nums tracking-tight',
+                                    focusNode.status === 'critical' ? 'text-rose-600' :
+                                        focusNode.status === 'warning' ? 'text-amber-600' : 'text-slate-900',
+                                )}>
+                                    {focusNode.currentReading.toFixed(2)}
+                                    <span className="text-lg font-bold text-slate-400 ml-1">{focusNode.readingUnit}</span>
+                                </p>
+                                <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-1">Current Reading</p>
                             </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Individual Sensor Charts */}
-                    <div>
-                        <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                            <Droplets className="h-5 w-5 text-primary" />
-                            All Water Level Sensors
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {waterNodes.map(node => {
-                                const history = readingHistories[node.id] ?? [];
-                                const lastPoints = history.slice(-24);
-
-                                return (
-                                    <Card key={node.id} className={cn(
-                                        'transition-all',
-                                        (node.status === 'critical' || node.tinymlStatus === 'anomaly_detected') && 'ring-1 ring-destructive/30',
-                                    )}>
-                                        <CardContent className="p-4">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <div>
-                                                    <p className="text-sm font-semibold text-foreground">{node.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{node.id} — {node.location}</p>
-                                                </div>
-                                                <p className={cn(
-                                                    'text-lg font-bold tabular-nums',
-                                                    node.status === 'critical' ? 'text-destructive' :
-                                                        node.status === 'warning' ? 'text-warning' : 'text-foreground',
-                                                )}>
-                                                    {node.currentReading.toFixed(2)}
-                                                    <span className="text-xs font-normal text-muted-foreground ml-0.5">{node.readingUnit}</span>
-                                                </p>
-                                            </div>
-
-                                            <div className="h-24">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <LineChart data={lastPoints}>
-                                                        <ReferenceLine
-                                                            y={node.warningThreshold}
-                                                            stroke="hsl(38, 92%, 50%)"
-                                                            strokeDasharray="4 2"
-                                                            strokeWidth={1}
-                                                        />
-                                                        <ReferenceLine
-                                                            y={node.criticalThreshold}
-                                                            stroke="hsl(0, 84%, 60%)"
-                                                            strokeDasharray="4 2"
-                                                            strokeWidth={1}
-                                                        />
-                                                        <Line
-                                                            type="monotone"
-                                                            dataKey="value"
-                                                            stroke={
-                                                                node.status === 'critical' ? 'hsl(0, 84%, 60%)' :
-                                                                    node.status === 'warning' ? 'hsl(38, 92%, 50%)' :
-                                                                        'hsl(199, 100%, 43%)'
-                                                            }
-                                                            strokeWidth={2}
-                                                            dot={false}
-                                                            isAnimationActive={false}
-                                                        />
-                                                    </LineChart>
-                                                </ResponsiveContainer>
-                                            </div>
-
-                                            <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                                                <span>Warn: {node.warningThreshold}{node.readingUnit}</span>
-                                                <span>Crit: {node.criticalThreshold}{node.readingUnit}</span>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                );
-                            })}
                         </div>
                     </div>
-                </div>
-            </div>
-        </DashboardLayout>
+                    <div className="p-6 pt-0">
+                        <div className="h-80 w-full mt-4">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={focusHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="waterGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#005587" stopOpacity={0.2} />
+                                            <stop offset="95%" stopColor="#005587" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <XAxis
+                                        dataKey="time"
+                                        tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        interval={Math.max(Math.floor(focusHistory.length / 12), 1)}
+                                    />
+                                    <YAxis
+                                        tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }}
+                                        domain={[0, 6]}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tickFormatter={v => `${v}m`}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: '#fff',
+                                            border: '1px solid #e2e8f0',
+                                            borderRadius: 8,
+                                            fontSize: 12,
+                                            fontWeight: 'bold',
+                                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
+                                        }}
+                                        formatter={(val: number) => [`${val.toFixed(2)}m`, 'Water Level']}
+                                    />
+                                    {/* Warning threshold */}
+                                    <ReferenceLine
+                                        y={focusNode.warningThreshold}
+                                        stroke="#f59e0b"
+                                        strokeDasharray="4 4"
+                                        strokeWidth={2}
+                                        label={{
+                                            value: `WARN (${focusNode.warningThreshold}m)`,
+                                            position: 'insideBottomRight',
+                                            fill: '#f59e0b',
+                                            fontSize: 10,
+                                            fontWeight: 800
+                                        }}
+                                    />
+                                    {/* Critical threshold */}
+                                    <ReferenceLine
+                                        y={focusNode.criticalThreshold}
+                                        stroke="#e11d48"
+                                        strokeDasharray="4 4"
+                                        strokeWidth={2}
+                                        label={{
+                                            value: `CRIT (${focusNode.criticalThreshold}m)`,
+                                            position: 'insideTopRight',
+                                            fill: '#e11d48',
+                                            fontSize: 10,
+                                            fontWeight: 800
+                                        }}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="value"
+                                        stroke="#005587"
+                                        strokeWidth={3}
+                                        fill="url(#waterGradient)"
+                                        dot={false}
+                                        isAnimationActive={false}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div >
+
+                {/* Individual Sensor Charts */}
+                < div >
+                    <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2 tracking-tight">
+                        <Droplets className="h-5 w-5 text-[#005587]" />
+                        Regional Water Level Sensors
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {waterNodes.map(node => {
+                            const history = readingHistories[node.id] ?? [];
+                            const lastPoints = history.slice(-24);
+
+                            return (
+                                <div key={node.id} className={cn(
+                                    'bg-white border border-slate-200 rounded-xl shadow-sm p-5 transition-all',
+                                    (node.status === 'critical' || node.tinymlStatus === 'anomaly_detected') && 'border-rose-400 shadow-rose-100 shadow-md',
+                                )}>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900 tracking-tight">{node.name}</p>
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-0.5">{node.id} — {node.location}</p>
+                                        </div>
+                                        <p className={cn(
+                                            'text-2xl font-extrabold tabular-nums tracking-tight',
+                                            node.status === 'critical' ? 'text-rose-600' :
+                                                node.status === 'warning' ? 'text-amber-600' : 'text-slate-900',
+                                        )}>
+                                            {node.currentReading.toFixed(2)}
+                                            <span className="text-xs font-bold text-slate-400 ml-0.5">{node.readingUnit}</span>
+                                        </p>
+                                    </div>
+
+                                    <div className="h-24 w-full">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <LineChart data={lastPoints}>
+                                                <ReferenceLine
+                                                    y={node.warningThreshold}
+                                                    stroke="#f59e0b"
+                                                    strokeDasharray="4 2"
+                                                    strokeWidth={1}
+                                                />
+                                                <ReferenceLine
+                                                    y={node.criticalThreshold}
+                                                    stroke="#e11d48"
+                                                    strokeDasharray="4 2"
+                                                    strokeWidth={1}
+                                                />
+                                                <Line
+                                                    type="monotone"
+                                                    dataKey="value"
+                                                    stroke={
+                                                        node.status === 'critical' ? '#e11d48' :
+                                                            node.status === 'warning' ? '#f59e0b' :
+                                                                '#005587'
+                                                    }
+                                                    strokeWidth={2}
+                                                    dot={false}
+                                                    isAnimationActive={false}
+                                                />
+                                            </LineChart>
+                                        </ResponsiveContainer>
+                                    </div>
+
+                                    <div className="flex items-center justify-between mt-3 text-[10px] uppercase font-bold tracking-widest text-slate-400 border-t border-slate-100 pt-3">
+                                        <span>Warn: {node.warningThreshold}{node.readingUnit}</span>
+                                        <span>Crit: {node.criticalThreshold}{node.readingUnit}</span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div >
+            </div >
+        </DashboardLayout >
     );
 }
