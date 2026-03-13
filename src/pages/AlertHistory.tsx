@@ -1,6 +1,6 @@
 import {
     Bell, MessageSquare, AlertTriangle, CheckCircle, Clock,
-    Radio, Siren, Shield, Mail, ChevronDown
+    Radio, Siren, Shield, Mail, ChevronDown, type LucideIcon
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +15,7 @@ const severityConfig = {
     info: { label: 'Info', className: 'bg-sky-50 text-[#005587] border-sky-200', icon: Bell },
 };
 
-const typeConfig: Record<string, { label: string; icon: any }> = {
+const typeConfig: Record<string, { label: string; icon: LucideIcon }> = {
     flood_warning: { label: 'Flood Warning', icon: AlertTriangle },
     anomaly: { label: 'TinyML Anomaly', icon: Radio },
     equipment_failure: { label: 'Equipment Failure', icon: Shield },

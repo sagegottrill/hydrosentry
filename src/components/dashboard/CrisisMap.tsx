@@ -6,7 +6,7 @@ import { AlertTriangle, Droplets, Wrench } from 'lucide-react';
 import type { RiskZone, Borehole, Route, Season } from '@/types/hydrosentry';
 
 // Fix for default marker icons in Leaflet with Vite
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
@@ -215,11 +215,11 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: 
 
   // Set up dispatch handler on window
   useEffect(() => {
-    (window as any).dispatchCrisisAction = (type: string, id: string) => {
+    (window as unknown as Record<string, (type: string, id: string) => void>).dispatchCrisisAction = (type: string, id: string) => {
       onDispatch?.(type, id);
     };
     return () => {
-      delete (window as any).dispatchCrisisAction;
+      delete (window as unknown as Record<string, (type: string, id: string) => void>).dispatchCrisisAction;
     };
   }, [onDispatch]);
 
