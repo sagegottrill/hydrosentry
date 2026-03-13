@@ -341,7 +341,6 @@ export default function Landing() {
                         </div>
                         <div className="md:text-right text-sm space-y-2">
                             <p>Initiative by <strong className="text-white">Orivon Edge</strong></p>
-                            <p className="text-slate-500">Supported by <strong className="text-slate-300">UNDP Youth4Climate</strong></p>
                         </div>
                     </div>
                     <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between text-xs text-slate-500">
