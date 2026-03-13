@@ -1,73 +1,45 @@
-# Welcome to your Lovable project
+# HydroSentry
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)
+![Status](https://img.shields.io/badge/Status-Operational%20Staging-orange.svg)
+![Architecture](https://img.shields.io/badge/Architecture-Offline--First-critical.svg)
 
-## Project info
+## Executive Architecture
+HydroSentry is a decentralized, offline-first early warning system built for the Lake Chad Basin. Engineered for extreme resource-constrained environments, the system provides high-availability flood and conflict resource mapping resilient to telecommunication blackouts. 
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+The architecture leverages Local-First principles combined with Edge IoT telemetry. State synchronization relies on Conflict-Free Replicated Data Types (CRDTs) to guarantee eventual consistency across the distributed network. The command interface is powered by a high-performance React client and Node.js backend, with robust geospatial telemetry processing driven by PostGIS.
 
-## How can I edit this code?
+## Core System Capabilities
+* **Zero-Latency Edge Inference (<1s):** Localized anomaly detection using TinyML on low-power sensor microcontrollers directly at the edge, removing dependency on cloud round-trips for critical threshold alerting.
+* **Dual-Crisis Monitoring:** Continuous, real-time telemetry assimilation monitoring both hydro-climatic volatility (wet season flooding events) and resource scarcity indicators (dry season conflict markers).
+* **Telecommunications Blackout Resilience:** Complete reliance on localized LoRaWAN mesh topologies ensuring high-availability telemetry transmission independent of cellular or broadband infrastructure.
+* **Youth-Led Warden Maintenance Protocol:** A decentralized physical maintenance topology executed by trained local wardens, providing scheduled hardware diagnostics, manual overrides, and node rehabilitation.
 
-There are several ways of editing your application.
+## System Topology & Technology Stack
 
-**Use Lovable**
+| Layer | Technology | Primary Function |
+| :--- | :--- | :--- |
+| **Edge Hardware** | LoRaWAN / Microcontrollers | Low-power sensory input, TinyML anomaly detection, and mesh transmission. |
+| **Command Backend** | Node.js / PostGIS | Geospatial telemetry ingestion, localized data synchronization, and state management. |
+| **Client Interface**| React / Tailwind / shadcn-ui | Clinical command interface, offline-first interactions, and data visualization. |
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Local Deployment Protocol
 
-Changes made via Lovable will be committed automatically to this repo.
+The following commands establish the isolated local command environment.
 
-**Use your preferred IDE**
+```bash
+# Clone the repository
+git clone https://github.com/sagegottrill/hydrosentry.git
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+# Navigate to the workspace
+cd hydrosentry
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+# Install system dependencies
+npm install
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Initialize the local command interface
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## Open Source Governance
+HydroSentry is classified as a Digital Public Good. It is maintained by an open-source youth engineering guild operating within Borno State. The infrastructure is designed to empower local communities with digital sovereignty over their early warning systems and localized disaster risk reduction pipelines.
