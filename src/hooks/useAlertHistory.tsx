@@ -1,4 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import {
+    createContext,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type ReactNode,
+} from 'react';
+import { toast } from 'sonner';
 
 // ── Types ──────────────────────────────────────────────────────
 export interface AlertEvent {
@@ -29,6 +38,13 @@ export interface AlertStats {
     sirensActivated: number;
     activeAlerts: number;
 }
+
+interface AlertHistoryContextValue {
+    alerts: AlertEvent[];
+    stats: AlertStats;
+}
+
+const AlertHistoryContext = createContext<AlertHistoryContextValue | null>(null);
 
 // ── Mock Alert History ─────────────────────────────────────────
 function buildAlertHistory(): AlertEvent[] {
@@ -150,12 +166,10 @@ function buildAlertHistory(): AlertEvent[] {
     ];
 }
 
-// ── Hook ───────────────────────────────────────────────────────
-export function useAlertHistory() {
+export function AlertHistoryProvider({ children }: { children: ReactNode }) {
     const [alerts, setAlerts] = useState<AlertEvent[]>(buildAlertHistory);
     const injectRef = useRef(false);
 
-    // Inject a live alert after 15 seconds (for demo wow-factor)
     useEffect(() => {
         const timer = setTimeout(() => {
             if (injectRef.current) return;
@@ -175,20 +189,38 @@ export function useAlertHistory() {
                 status: 'active',
             };
 
-            setAlerts(prev => [liveAlert, ...prev]);
+            setAlerts((prev) => [liveAlert, ...prev]);
+            toast.warning('New critical alert', {
+                description: 'Alau Dam Monitor — check notifications or Alert history.',
+                duration: 8000,
+            });
         }, 15000);
 
         return () => clearTimeout(timer);
     }, []);
 
-    const stats: AlertStats = {
+    const stats = useMemo((): AlertStats => ({
         totalAlerts: alerts.length,
         totalSmsSent: alerts.reduce((a, e) => a + (e.smsDelivery?.sent ?? 0), 0),
         totalSmsDelivered: alerts.reduce((a, e) => a + (e.smsDelivery?.delivered ?? 0), 0),
         avgResponseMin: 4.2,
-        sirensActivated: alerts.filter(a => a.sirenActivated).length,
-        activeAlerts: alerts.filter(a => a.status === 'active').length,
-    };
+        sirensActivated: alerts.filter((a) => a.sirenActivated).length,
+        activeAlerts: alerts.filter((a) => a.status === 'active').length,
+    }), [alerts]);
 
-    return { alerts, stats };
+    const value = useMemo(() => ({ alerts, stats }), [alerts, stats]);
+
+    return (
+        <AlertHistoryContext.Provider value={value}>
+            {children}
+        </AlertHistoryContext.Provider>
+    );
+}
+
+export function useAlertHistory() {
+    const ctx = useContext(AlertHistoryContext);
+    if (!ctx) {
+        throw new Error('useAlertHistory must be used within AlertHistoryProvider');
+    }
+    return ctx;
 }

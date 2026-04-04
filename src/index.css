@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,28 +6,28 @@
 
 @layer base {
   :root {
-    /* Core Backgrounds */
-    --background: 0 0% 100%;
-    --foreground: 215 25% 15%;
+    /* Canvas: slightly cooler/lighter than cards so white panels “float” (airy dashboards) */
+    --background: 220 16% 96%;
+    --foreground: 222 37% 14%;
 
     /* Card & Surface */
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 222 47% 11%;
 
-    /* UN Blue - Primary Brand */
-    --primary: 199 100% 43%;
+    /* UN Blue — slightly deeper for text/UI contrast */
+    --primary: 201 90% 38%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Slate */
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 215 25% 15%;
+    /* Secondary - cool gray */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 47% 11%;
 
     /* Muted */
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
     /* Accent */
     --accent: 199 100% 95%;
@@ -45,27 +43,27 @@
     --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
 
-    /* Borders & Inputs */
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 199 100% 43%;
+    /* Hairline borders (#eee-like), not heavy frames */
+    --border: 220 14% 90%;
+    --input: 220 14% 90%;
+    --ring: 201 90% 38%;
 
-    --radius: 0.5rem;
+    --radius: 0.625rem;
 
     /* Sidebar */
-    --sidebar-background: 210 40% 98%;
-    --sidebar-foreground: 215 25% 27%;
-    --sidebar-primary: 199 100% 43%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 37% 18%;
+    --sidebar-primary: 201 90% 38%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 199 100% 95%;
     --sidebar-accent-foreground: 199 100% 35%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 199 100% 43%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 201 90% 38%;
 
     /* Custom HydroSentry Tokens */
-    --flood-red: 0 84% 60%;
-    --drought-amber: 38 92% 50%;
-    --un-blue: 199 100% 43%;
+    --flood-red: 0 72% 51%;
+    --drought-amber: 32 95% 44%;
+    --un-blue: 201 90% 38%;
     --safe-green: 142 76% 36%;
 
     /* Premium Timing & Shadows */
@@ -143,37 +141,116 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 }
 
 @layer utilities {
+  /* Prefer borders over shadow for “clean SaaS” density */
   .shadow-soft {
-    box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.04), 0 2px 8px -2px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
   }
 
   .shadow-lifted {
-    box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.08), 0 8px 16px -4px rgba(0, 0, 0, 0.04);
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 8px 24px -6px rgba(15, 23, 42, 0.06);
+  }
+
+  /**
+   * Scrollable inner pages — fills main; scrolls here, not the window.
+   * No max-width cap so collapsed sidebar gains usable width.
+   */
+  /** Subpages: same top rhythm as overview (dashboard-overview-root), not extra vertical padding */
+  .dashboard-shell {
+    @apply mx-auto min-h-0 w-full max-w-[1920px] flex-1 space-y-3 overflow-y-auto overscroll-y-contain px-4 py-3 sm:space-y-4 sm:px-5 sm:py-3;
+  }
+
+  /** KPI / summary tiles — one horizontal band: label + value, institutional density */
+  .stat-grid {
+    @apply grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3;
+  }
+
+  .stat-grid-5 {
+    @apply lg:grid-cols-5;
+  }
+
+  .stat-grid-7 {
+    @apply md:grid-cols-4 xl:grid-cols-7;
+  }
+
+  .stat-tile {
+    @apply dashboard-card flex min-w-0 flex-row items-center justify-between gap-2 px-3 py-2.5 sm:gap-3 sm:px-3.5 sm:py-3;
+  }
+
+  .stat-tile-head {
+    @apply flex min-w-0 flex-1 items-center gap-2;
+  }
+
+  .stat-tile-label {
+    @apply min-w-0 truncate text-xs font-medium leading-tight text-muted-foreground;
+  }
+
+  .stat-tile-value {
+    @apply shrink-0 tabular-nums text-base font-semibold leading-none tracking-tight text-foreground sm:text-lg;
+  }
+
+  /** Table/list region: scroll inside card */
+  .table-scroll {
+    @apply panel-scroll max-h-[min(70vh,36rem)] overflow-auto sm:max-h-[min(75vh,40rem)];
+  }
+
+  /** Single-screen overview: no outer scroll; children manage overflow */
+  .dashboard-overview-root {
+    @apply flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden px-4 py-3 sm:px-5 sm:py-3;
+  }
+
+  /** White panel: thin border, almost no shadow */
+  .dashboard-card {
+    @apply rounded-[0.625rem] border border-border bg-card text-card-foreground;
+  }
+
+  .surface-card {
+    @apply rounded-[0.625rem] border border-border bg-card text-card-foreground shadow-soft;
   }
 
   .ease-premium {
     transition-timing-function: var(--ease-premium);
   }
+
+  /** In-panel scrolling (map / dispatch / long lists) */
+  .panel-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.22) transparent;
+  }
+
+  .panel-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .panel-scroll::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: hsl(var(--muted-foreground) / 0.22);
+  }
 }
 
-/* Premium Micro-Interactions Reset (for buttons and links globally) */
-button,
-a {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-button:active,
-a:active {
-  transform: scale(0.98);
+/* Focused transitions — avoid global !important / scale on every control */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  a[href] {
+    transition-property: color, background-color, border-color, box-shadow, opacity;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }
 
 /* Leaflet overrides for clean look */
 .leaflet-container {
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   z-index: 1;
 }
 
@@ -338,6 +415,25 @@ a:active {
   background: linear-gradient(90deg, hsl(199, 100%, 43%), hsl(180, 70%, 50%));
   z-index: 9999;
   transition: width 0.1s linear;
+}
+
+@keyframes landing-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.landing-marquee-track {
+  animation: landing-marquee 38s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-marquee-track {
+    animation: none;
+  }
 }
 
 /* ── Sticky Scrollytelling ────────────────────────────────────── */

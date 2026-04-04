@@ -1,4 +1,3 @@
-import { Card, CardContent } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Activity } from 'lucide-react';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { cn } from '@/lib/utils';
@@ -11,7 +10,32 @@ interface MetricCardProps {
   status?: 'critical' | 'warning' | 'success' | 'neutral';
   sparklineData?: { day: number; value: number }[];
   sparklineColor?: string;
+  /** Opens linked view / drill-down when set */
+  onClick?: () => void;
 }
+
+const statusStyles = {
+  critical: {
+    iconWrap: 'bg-destructive/8',
+    iconClass: 'text-destructive',
+    icon: AlertTriangle,
+  },
+  warning: {
+    iconWrap: 'bg-amber-500/8',
+    iconClass: 'text-amber-700 dark:text-amber-500',
+    icon: AlertTriangle,
+  },
+  success: {
+    iconWrap: 'bg-emerald-500/8',
+    iconClass: 'text-emerald-700 dark:text-emerald-500',
+    icon: CheckCircle,
+  },
+  neutral: {
+    iconWrap: 'bg-muted/60',
+    iconClass: 'text-muted-foreground',
+    icon: Activity,
+  },
+} as const;
 
 export function MetricCard({
   title,
@@ -20,111 +44,97 @@ export function MetricCard({
   trend,
   status = 'neutral',
   sparklineData,
-  sparklineColor = 'hsl(var(--primary))'
+  sparklineColor = 'hsl(var(--primary))',
+  onClick,
 }: MetricCardProps) {
-  const statusConfig = {
-    critical: {
-      color: 'bg-rose-500',
-      textColor: 'text-rose-600',
-      icon: AlertTriangle,
-      label: 'Critical'
-    },
-    warning: {
-      color: 'bg-amber-500',
-      textColor: 'text-amber-600',
-      icon: AlertTriangle,
-      label: 'Warning'
-    },
-    success: {
-      color: 'bg-emerald-500',
-      textColor: 'text-emerald-600',
-      icon: CheckCircle,
-      label: 'Verified'
-    },
-    neutral: {
-      color: 'bg-slate-300',
-      textColor: 'text-slate-600',
-      icon: null,
-      label: ''
-    }
-  };
-
-  const config = statusConfig[status];
-  const StatusIcon = config.icon || Activity;
+  const st = statusStyles[status];
+  const StatusIcon = st.icon;
+  const gradId = `m-${title.replace(/\W/g, '').slice(0, 24) || 'spark'}-${status}`;
 
   return (
-    <div className="relative bg-white rounded-2xl shadow-soft hover:shadow-lifted transition-all duration-300 group flex flex-col h-full overflow-hidden">
-      {/* Optional Top Accent Line */}
-      {status !== 'neutral' && (
-        <div className={`absolute top-0 left-0 right-0 h-1 transition-colors ${config.color}`} />
+    <div
+      role={onClick ? 'button' : undefined}
+      aria-label={onClick ? `Open details: ${title}` : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+      className={cn(
+        'group dashboard-card flex h-full flex-col overflow-hidden transition-colors duration-200',
+        'hover:border-muted-foreground/18',
+        onClick && 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25',
       )}
-
-      <div className="p-6 flex flex-col h-full">
-        {/* Header Row: Title & Top-Right Icon */}
-        <div className="flex items-start justify-between mb-5">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
-            {title}
-          </p>
-          <div className={cn(
-            "w-9 h-9 flex items-center justify-center rounded-xl",
-            status !== 'neutral' ? config.color.replace('bg-', 'bg-').replace('500', '100') : "bg-[#005587]/10"
-          )}>
-            <StatusIcon className={cn(
-              "h-4 w-4",
-              status !== 'neutral' ? config.textColor : "text-[#005587]"
-            )} />
+    >
+      <div className="flex h-full flex-1 flex-col p-4">
+        <div className="mb-3 flex items-start justify-between gap-2">
+          <p className="text-xs font-medium leading-snug text-muted-foreground">{title}</p>
+          <div
+            className={cn(
+              'flex h-7 w-7 shrink-0 items-center justify-center rounded-md',
+              st.iconWrap,
+            )}
+          >
+            <StatusIcon className={cn('h-3.5 w-3.5', st.iconClass)} strokeWidth={1.5} />
           </div>
         </div>
 
-        {/* Content Row: Value & Sparkline */}
-        <div className="flex items-end justify-between flex-1">
-          <div>
-            <p className="text-3xl font-extrabold text-slate-900 tracking-tight tabular-nums font-display">
+        <div className="mt-auto flex flex-1 items-end justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-xl font-bold leading-none tracking-tight text-foreground tabular-nums sm:text-2xl">
               {value}
             </p>
 
-            {/* Badges and Subtitles Below Value */}
-            <div className="flex items-center gap-2 mt-2 flex-wrap">
-              {trend !== undefined && (
-                <span className={cn(
-                  "flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full",
-                  trend > 0 ? "bg-rose-50 text-rose-600" : "bg-emerald-50 text-emerald-600"
-                )}>
-                  {trend > 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              {trend !== undefined ? (
+                <span
+                  className={cn(
+                    'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium',
+                    trend > 0 ? 'bg-destructive/10 text-destructive' : 'bg-emerald-500/10 text-emerald-700',
+                  )}
+                >
+                  {trend > 0 ? (
+                    <TrendingUp className="mr-0.5 h-3 w-3" strokeWidth={1.5} />
+                  ) : (
+                    <TrendingDown className="mr-0.5 h-3 w-3" strokeWidth={1.5} />
+                  )}
                   {Math.abs(trend)}%
                 </span>
-              )}
-
-              {subtitle && (
-                <span className="text-xs text-slate-500 font-medium">
-                  {subtitle}
-                </span>
-              )}
+              ) : null}
+              {subtitle ? (
+                <span className="text-xs font-normal leading-relaxed text-muted-foreground">{subtitle}</span>
+              ) : null}
             </div>
           </div>
 
-          {/* Sparkline anchored bottom-right */}
-          {sparklineData && (
-            <div className="w-24 h-12 ml-4 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
+          {sparklineData ? (
+            <div className="h-11 w-20 shrink-0 opacity-75 transition-opacity duration-200 group-hover:opacity-100">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={sparklineData}>
+                <AreaChart data={sparklineData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
                   <defs>
-                    <linearGradient id={`gradient-${title.replace(/\s/g, '')}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={sparklineColor} stopOpacity={0.2} />
+                    <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={sparklineColor} stopOpacity={0.18} />
                       <stop offset="100%" stopColor={sparklineColor} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <Area
-                    type="monotone"
+                    type="natural"
                     dataKey="value"
                     stroke={sparklineColor}
-                    strokeWidth={2}
-                    fill={`url(#gradient-${title.replace(/\s/g, '')})`}
+                    strokeWidth={1.25}
+                    fill={`url(#${gradId})`}
                   />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

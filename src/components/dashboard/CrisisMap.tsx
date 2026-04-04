@@ -3,7 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Droplets, Wrench } from 'lucide-react';
-import type { RiskZone, Borehole, Route, Season } from '@/types/hydrosentry';
+import type { RiskZone, Borehole, Route, Season, SensorNode, SensorTelemetrySnapshot } from '@/types/hydrosentry';
 
 // Fix for default marker icons in Leaflet with Vite
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -24,7 +24,7 @@ const createCustomIcon = (color: string, size: number = 24) => {
         background-color: ${color};
         border: 3px solid white;
         border-radius: 50%;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        box-shadow: 0 2px 12px rgba(15,23,42,0.12);
         position: relative;
       ">
         <div style="
@@ -69,9 +69,27 @@ interface CrisisMapProps {
   boreholes: Borehole[];
   routes: Route[];
   onDispatch?: (type: string, id: string) => void;
+  /** Live ESP32 telemetry for linked risk-zone nodes (optional). */
+  sensorNodes?: SensorNode[];
 }
 
-export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: CrisisMapProps) {
+function resolveZoneTelemetry(
+  zone: RiskZone,
+  sensorNodes?: SensorNode[],
+): SensorTelemetrySnapshot | undefined {
+  if (!zone.linkedSensorNodeId) return zone.lastTelemetry;
+  const live = sensorNodes?.find(
+    (n) => n.id === zone.linkedSensorNodeId || n.publicCode === zone.linkedSensorNodeId,
+  );
+  if (!live) return zone.lastTelemetry;
+  return {
+    water_level_cm: live.water_level_cm,
+    battery_voltage: live.battery_voltage,
+    node_status: live.node_status,
+  };
+}
+
+export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch, sensorNodes }: CrisisMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layersRef = useRef<L.LayerGroup | null>(null);
@@ -123,6 +141,18 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: 
 
       // Add flood zone circles and markers
       riskZones.forEach((zone) => {
+        const tel = resolveZoneTelemetry(zone, sensorNodes);
+        const telHtml =
+          tel && zone.linkedSensorNodeId
+            ? `
+          <div style="margin-top:10px;padding:10px;background:#f1f5f9;border-radius:8px;font-size:11px;line-height:1.5;">
+            <p style="font-weight:800;color:#005587;margin:0 0 6px 0;text-transform:uppercase;letter-spacing:0.05em;">Edge · ${zone.linkedSensorNodeId}</p>
+            <p style="margin:0;"><span style="color:#64748b">JSN-SR04T depth:</span> <strong>${tel.water_level_cm} cm</strong></p>
+            <p style="margin:4px 0 0 0;"><span style="color:#64748b">LiFePO₄ (3.2 V nom.):</span> <strong>${tel.battery_voltage.toFixed(2)} V</strong> · <strong style="text-transform:capitalize">${tel.node_status.replace('_', ' ')}</strong></p>
+          </div>
+        `
+            : '';
+
         // Circle - more opaque for video visibility
         const circle = L.circle(zone.coordinates, {
           radius: 500,
@@ -149,6 +179,7 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: 
               <p><span style="color: #64748b;">Blockage Type:</span> ${zone.blockageType}</p>
               <p><span style="color: #64748b;">Flood Risk:</span> <span style="color: #ef4444; font-weight: 500; text-transform: capitalize;">${zone.severity}</span></p>
               <p style="color: #64748b; margin-top: 4px;">${zone.description}</p>
+              ${telHtml}
             </div>
             <button 
               onclick="window.dispatchCrisisAction('clearance', '${zone.id}')"
@@ -211,7 +242,7 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: 
         layersRef.current?.addLayer(marker);
       });
     }
-  }, [season, riskZones, boreholes, routes]);
+  }, [season, riskZones, boreholes, routes, sensorNodes]);
 
   // Set up dispatch handler on window
   useEffect(() => {
@@ -224,8 +255,8 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: 
   }, [onDispatch]);
 
   return (
-    <div className="relative h-full w-full rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-50">
-      <div ref={mapContainerRef} className="h-full w-full opacity-95" />
+    <div className="relative h-full min-h-[12rem] w-full overflow-hidden rounded-md bg-muted/30">
+      <div ref={mapContainerRef} className="h-full w-full min-h-[12rem]" />
 
       {/* Map Legend */}
       <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-sm border border-slate-200 p-4 z-[1000] min-w-[180px]">
