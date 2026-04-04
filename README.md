@@ -29,6 +29,22 @@ HydroSentry is an open-source, decentralized intelligence blueprint engineered f
 
 ## 🚀 Local Deployment Protocol
 
+## 🤝 Open Source Governance & Contributing
+----------------------------------------
+
+HydroSentry is classified as a **Digital Public Good**. It is maintained by an open-source youth engineering guild operating within Borno State. The infrastructure is designed to empower local communities with digital sovereignty over their early warning systems.
+
+We actively welcome contributions from global developers, GIS specialists, and hardware engineers.
+
+1.  Fork the Project
+    
+2.  Create your Feature Branch (git checkout -b feature/AmazingFeature)
+    
+3.  Commit your Changes (git commit -m 'Add some AmazingFeature')
+    
+4.  Push to the Branch (git push origin feature/AmazingFeature)
+
+
 The following commands establish the local command environment.
 
 ```bash
@@ -48,20 +64,7 @@ cp .env.example .env
 # 5. Initialize the local command interface
 npm run dev
 
-🤝 Open Source Governance & Contributing
-----------------------------------------
 
-HydroSentry is classified as a **Digital Public Good**. It is maintained by an open-source youth engineering guild operating within Borno State. The infrastructure is designed to empower local communities with digital sovereignty over their early warning systems.
-
-We actively welcome contributions from global developers, GIS specialists, and hardware engineers.
-
-1.  Fork the Project
-    
-2.  Create your Feature Branch (git checkout -b feature/AmazingFeature)
-    
-3.  Commit your Changes (git commit -m 'Add some AmazingFeature')
-    
-4.  Push to the Branch (git push origin feature/AmazingFeature)
     
 5.  Open a Pull Request
     
