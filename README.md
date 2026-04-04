@@ -27,7 +27,6 @@ HydroSentry is an open-source, decentralized intelligence blueprint engineered f
 | **Command Backend** | Supabase (PostgreSQL) / Edge Functions | Geospatial telemetry ingestion, Termii SMS dispatch, and state management. |
 | **Client Interface** | React / Tailwind / shadcn-ui | Clinical command interface, offline-first interactions, and data visualization. |
 
-## 🚀 Local Deployment Protocol
 
 ## 🤝 Open Source Governance & Contributing
 ----------------------------------------
@@ -45,6 +44,7 @@ We actively welcome contributions from global developers, GIS specialists, and h
 4.  Push to the Branch (git push origin feature/AmazingFeature)
 
 
+## 🚀 Local Deployment Protocol
 The following commands establish the local command environment.
 
 ```bash
