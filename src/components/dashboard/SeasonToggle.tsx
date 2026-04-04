@@ -10,30 +10,31 @@ interface SeasonToggleProps {
 
 export function SeasonToggle({ season, onSeasonChange }: SeasonToggleProps) {
   return (
-    <div className="flex items-center gap-4 bg-white border border-slate-200 rounded-full px-5 py-2.5 shadow-sm">
-      {/* Wet Season Label */}
-      <div className={cn(
-        "flex items-center gap-2 transition-colors",
-        season === 'wet' ? "text-[#005587]" : "text-slate-400"
-      )}>
-        <Droplets className="h-4.5 w-4.5" />
-        <span className="text-xs font-bold uppercase tracking-wider">Wet Season</span>
+    <div className="flex items-center gap-3 rounded-full border border-border bg-card px-4 py-2">
+      <div
+        className={cn(
+          'flex items-center gap-2 transition-colors',
+          season === 'wet' ? 'text-primary' : 'text-muted-foreground',
+        )}
+      >
+        <Droplets className="h-4 w-4" strokeWidth={1.75} />
+        <span className="text-xs font-medium">Wet</span>
       </div>
 
-      {/* Toggle Switch */}
       <Switch
         checked={season === 'dry'}
         onCheckedChange={(checked) => onSeasonChange(checked ? 'dry' : 'wet')}
-        className="data-[state=checked]:bg-amber-500 data-[state=unchecked]:bg-[#005587]"
+        className="data-[state=checked]:bg-amber-500 data-[state=unchecked]:bg-primary"
       />
 
-      {/* Dry Season Label */}
-      <div className={cn(
-        "flex items-center gap-2 transition-colors",
-        season === 'dry' ? "text-amber-600" : "text-slate-400"
-      )}>
-        <Sun className="h-4.5 w-4.5" />
-        <span className="text-xs font-bold uppercase tracking-wider">Dry Season</span>
+      <div
+        className={cn(
+          'flex items-center gap-2 transition-colors',
+          season === 'dry' ? 'text-amber-600' : 'text-muted-foreground',
+        )}
+      >
+        <Sun className="h-4 w-4" strokeWidth={1.75} />
+        <span className="text-xs font-medium">Dry</span>
       </div>
     </div>
   );

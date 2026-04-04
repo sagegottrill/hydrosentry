@@ -7,6 +7,7 @@ import type {
   DashboardMetrics,
   Season 
 } from '@/types/hydrosentry';
+import { EDGE_HARDWARE_SPEC } from '@/types/hydrosentry';
 
 // Mock data - structured for easy Supabase migration
 const mockRiskZones: RiskZone[] = [
@@ -18,7 +19,13 @@ const mockRiskZones: RiskZone[] = [
     severity: 'high',
     season: 'wet',
     blockageType: 'Solid Waste',
-    description: 'Major drainage blockage causing flood risk'
+    description: 'Major drainage blockage causing flood risk',
+    linkedSensorNodeId: 'SN-001',
+    lastTelemetry: {
+      water_level_cm: 228,
+      battery_voltage: 3.18,
+      node_status: 'online',
+    },
   },
   {
     id: 'rz-002',
@@ -28,7 +35,13 @@ const mockRiskZones: RiskZone[] = [
     severity: 'high',
     season: 'wet',
     blockageType: 'Debris & Sediment',
-    description: 'Recurring flood zone during heavy rains'
+    description: 'Recurring flood zone during heavy rains',
+    linkedSensorNodeId: 'SN-002',
+    lastTelemetry: {
+      water_level_cm: 182,
+      battery_voltage: 3.14,
+      node_status: 'online',
+    },
   },
   {
     id: 'rz-003',
@@ -38,7 +51,13 @@ const mockRiskZones: RiskZone[] = [
     severity: 'medium',
     season: 'wet',
     blockageType: 'Construction Waste',
-    description: 'Channel overflow risk area'
+    description: 'Channel overflow risk area',
+    linkedSensorNodeId: 'SN-003',
+    lastTelemetry: {
+      water_level_cm: 118,
+      battery_voltage: 3.2,
+      node_status: 'online',
+    },
   }
 ];
 
@@ -250,7 +269,7 @@ export function useHydroData() {
     routes,
     metrics: mockMetrics,
     sparklineData,
-    // Future: These will be replaced with actual Supabase queries
+    edgeHardwareSpec: EDGE_HARDWARE_SPEC,
     isLoading: false,
     error: null
   };

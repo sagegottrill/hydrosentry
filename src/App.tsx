@@ -13,6 +13,7 @@ import SensorWardens from "./pages/SensorWardens";
 import Dispatcher from "./pages/Dispatcher";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import { AlertHistoryProvider } from "./hooks/useAlertHistory";
 
 const queryClient = new QueryClient();
 
@@ -22,18 +23,20 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/sensors" element={<SensorNetwork />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/alerts" element={<AlertHistory />} />
-          <Route path="/wardens" element={<SensorWardens />} />
-          <Route path="/dispatcher" element={<Dispatcher />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AlertHistoryProvider>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/sensors" element={<SensorNetwork />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/alerts" element={<AlertHistory />} />
+            <Route path="/wardens" element={<SensorWardens />} />
+            <Route path="/dispatcher" element={<Dispatcher />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AlertHistoryProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

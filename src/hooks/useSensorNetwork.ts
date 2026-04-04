@@ -1,224 +1,321 @@
-import { useState, useEffect, useRef } from 'react';
-
-// ── Types ──────────────────────────────────────────────────────
-export interface SensorNode {
-  id: string;
-  name: string;
-  location: string;
-  coordinates: [number, number];
-  type: 'water_level' | 'rain_gauge' | 'flow_meter';
-  status: 'online' | 'offline' | 'warning' | 'critical';
-  battery: number;
-  signalStrength: number;
-  currentReading: number;
-  readingUnit: string;
-  lastUpdated: string;
-  tinymlStatus: 'normal' | 'anomaly_detected' | 'processing';
-  firmwareVersion: string;
-  installedDate: string;
-  assignedWarden: string;
-  warningThreshold: number;
-  criticalThreshold: number;
-}
+import { useEffect, useMemo, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import type { SensorHardwareType, SensorNode } from '@/types/hydrosentry';
+import { getWaterLevelSeverity } from '@/lib/sensorTelemetry';
+import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
 
 export interface ReadingPoint {
   time: string;
   value: number;
 }
 
-// ── Helpers ────────────────────────────────────────────────────
-function generateHistory(baseline: number, hours: number): ReadingPoint[] {
-  const pts: ReadingPoint[] = [];
-  const now = Date.now();
-  for (let i = hours; i >= 0; i--) {
-    const t = new Date(now - i * 3600000);
-    const noise = (Math.random() - 0.5) * 0.4;
-    const drift = ((hours - i) / hours) * 0.3;
-    pts.push({
-      time: t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      value: Math.round((baseline + noise + drift) * 100) / 100,
-    });
-  }
-  return pts;
+interface SensorNodeRow {
+  id: string;
+  public_code: string | null;
+  name: string;
+  location: string;
+  latitude: number;
+  longitude: number;
+  type: SensorHardwareType;
+  signal_strength: number;
+  reading_unit: string;
+  tinyml_status: string;
+  firmware_version: string;
+  installed_date: string;
+  assigned_warden: string;
+  warning_threshold: number;
+  critical_threshold: number;
 }
 
-function timeAgo(sec: number): string {
+interface TelemetryLatestRow {
+  sensor_node_id: string;
+  water_level_cm: number;
+  battery_voltage: number;
+  node_status: SensorNode['node_status'];
+  scalar_reading: number | null;
+  recorded_at: string;
+}
+
+interface TelemetryHistoryRow {
+  sensor_node_id: string;
+  water_level_cm: number;
+  scalar_reading: number | null;
+  recorded_at: string;
+}
+
+function asTinyml(s: string): SensorNode['tinymlStatus'] {
+  if (s === 'anomaly_detected' || s === 'processing') return s;
+  return 'normal';
+}
+
+function formatLastUpdated(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  const sec = Math.floor((Date.now() - d.getTime()) / 1000);
   if (sec < 60) return `${sec}s ago`;
   if (sec < 3600) return `${Math.floor(sec / 60)} min ago`;
-  return `${Math.floor(sec / 3600)}h ago`;
+  if (sec < 86400) return `${Math.floor(sec / 3600)}h ago`;
+  return `${Math.floor(sec / 86400)}d ago`;
 }
 
-// ── Initial Sensor Data ────────────────────────────────────────
-const buildInitialNodes = (): SensorNode[] => [
-  {
-    id: 'SN-001', name: 'Ngadda Bridge Alpha', location: 'Monday Market Bridge',
-    coordinates: [11.8456, 13.1523], type: 'water_level', status: 'online',
-    battery: 87, signalStrength: 92, currentReading: 2.3, readingUnit: 'm',
-    lastUpdated: '2 min ago', tinymlStatus: 'normal', firmwareVersion: 'v1.2.4',
-    installedDate: '2026-01-15', assignedWarden: 'Ibrahim Musa',
-    warningThreshold: 3.5, criticalThreshold: 4.5,
-  },
-  {
-    id: 'SN-002', name: 'Gwange Drainage Sensor', location: 'Gwange Ward',
-    coordinates: [11.838, 13.14], type: 'water_level', status: 'online',
-    battery: 64, signalStrength: 78, currentReading: 1.8, readingUnit: 'm',
-    lastUpdated: '5 min ago', tinymlStatus: 'normal', firmwareVersion: 'v1.2.4',
-    installedDate: '2026-01-18', assignedWarden: 'Aisha Bukar',
-    warningThreshold: 3.0, criticalThreshold: 4.0,
-  },
-  {
-    id: 'SN-003', name: 'Lagos Street Node', location: 'Lagos Street',
-    coordinates: [11.852, 13.135], type: 'water_level', status: 'online',
-    battery: 92, signalStrength: 95, currentReading: 1.2, readingUnit: 'm',
-    lastUpdated: '1 min ago', tinymlStatus: 'normal', firmwareVersion: 'v1.2.4',
-    installedDate: '2026-01-20', assignedWarden: 'Mohammed Yusuf',
-    warningThreshold: 3.0, criticalThreshold: 4.0,
-  },
-  {
-    id: 'SN-004', name: 'Alau Dam Monitor', location: 'Alau Dam Spillway',
-    coordinates: [11.78, 13.25], type: 'water_level', status: 'online',
-    battery: 71, signalStrength: 85, currentReading: 3.1, readingUnit: 'm',
-    lastUpdated: '3 min ago', tinymlStatus: 'normal', firmwareVersion: 'v1.2.4',
-    installedDate: '2026-01-10', assignedWarden: 'Fatima Ali',
-    warningThreshold: 3.5, criticalThreshold: 4.5,
-  },
-  {
-    id: 'SN-005', name: 'Jere LGA Rain Station', location: 'Jere LGA',
-    coordinates: [11.88, 13.1], type: 'rain_gauge', status: 'online',
-    battery: 45, signalStrength: 70, currentReading: 12.4, readingUnit: 'mm/h',
-    lastUpdated: '8 min ago', tinymlStatus: 'normal', firmwareVersion: 'v1.1.8',
-    installedDate: '2026-02-01', assignedWarden: 'Usman Babagana',
-    warningThreshold: 25.0, criticalThreshold: 40.0,
-  },
-  {
-    id: 'SN-006', name: 'Konduga Flow Meter', location: 'Konduga',
-    coordinates: [11.65, 13.38], type: 'flow_meter', status: 'online',
-    battery: 83, signalStrength: 88, currentReading: 0.8, readingUnit: 'm³/s',
-    lastUpdated: '4 min ago', tinymlStatus: 'normal', firmwareVersion: 'v1.2.4',
-    installedDate: '2026-01-25', assignedWarden: 'Halima Suleiman',
-    warningThreshold: 2.0, criticalThreshold: 3.5,
-  },
-  {
-    id: 'SN-007', name: 'Dikwa Observation Post', location: 'Dikwa',
-    coordinates: [12.03, 13.92], type: 'water_level', status: 'online',
-    battery: 56, signalStrength: 62, currentReading: 1.5, readingUnit: 'm',
-    lastUpdated: '12 min ago', tinymlStatus: 'normal', firmwareVersion: 'v1.1.8',
-    installedDate: '2026-02-05', assignedWarden: 'Abdullahi Mala',
-    warningThreshold: 3.0, criticalThreshold: 4.0,
-  },
-  {
-    id: 'SN-008', name: 'Bama North Sensor', location: 'Bama LGA',
-    coordinates: [11.522, 13.689], type: 'water_level', status: 'warning',
-    battery: 22, signalStrength: 41, currentReading: 2.0, readingUnit: 'm',
-    lastUpdated: '25 min ago', tinymlStatus: 'normal', firmwareVersion: 'v1.1.8',
-    installedDate: '2026-02-10', assignedWarden: 'Zainab Kyari',
-    warningThreshold: 3.5, criticalThreshold: 4.5,
-  },
-  {
-    id: 'SN-009', name: 'Monguno Water Station', location: 'Monguno',
-    coordinates: [12.68, 13.61], type: 'water_level', status: 'online',
-    battery: 78, signalStrength: 74, currentReading: 1.1, readingUnit: 'm',
-    lastUpdated: '6 min ago', tinymlStatus: 'normal', firmwareVersion: 'v1.2.4',
-    installedDate: '2026-02-15', assignedWarden: 'Garba Umar',
-    warningThreshold: 3.0, criticalThreshold: 4.0,
-  },
-  {
-    id: 'SN-010', name: 'Marte Relay Node', location: 'Marte LGA',
-    coordinates: [12.36, 13.83], type: 'water_level', status: 'offline',
-    battery: 0, signalStrength: 0, currentReading: 0, readingUnit: 'm',
-    lastUpdated: '3 days ago', tinymlStatus: 'normal', firmwareVersion: 'v1.1.8',
-    installedDate: '2026-02-20', assignedWarden: 'Amina Lawan',
-    warningThreshold: 3.0, criticalThreshold: 4.0,
-  },
-];
+function mapRowToSensorNode(
+  row: SensorNodeRow,
+  latest: TelemetryLatestRow | undefined,
+): SensorNode {
+  const hasLatest = Boolean(latest?.recorded_at);
+  const waterCm = hasLatest ? Number(latest!.water_level_cm) : 0;
+  const voltage = hasLatest ? Number(latest!.battery_voltage) : 0;
+  const nodeStatus = hasLatest ? latest!.node_status : 'offline';
+  const scalar = hasLatest && latest!.scalar_reading != null ? Number(latest!.scalar_reading) : null;
 
-// ── Hook ───────────────────────────────────────────────────────
-export function useSensorNetwork() {
-  const [nodes, setNodes] = useState<SensorNode[]>(buildInitialNodes);
-  const [readingHistories, setReadingHistories] = useState<Record<string, ReadingPoint[]>>(() => {
-    const h: Record<string, ReadingPoint[]> = {};
-    buildInitialNodes().forEach(n => {
-      h[n.id] = generateHistory(n.currentReading, 48);
-    });
-    return h;
-  });
-  const tickRef = useRef(0);
+  const isWater = row.type === 'water_level';
+  const currentReading = isWater ? waterCm : scalar ?? 0;
 
-  // Real-time simulation — updates every 3 seconds
-  useEffect(() => {
-    const iv = setInterval(() => {
-      tickRef.current += 1;
-      const tick = tickRef.current;
-
-      setNodes(prev =>
-        prev.map(node => {
-          if (node.status === 'offline') return node;
-
-          let newReading = node.currentReading;
-
-          // SN-004 (Alau Dam) trends upward to simulate rising water
-          if (node.id === 'SN-004') {
-            newReading += 0.03 + Math.random() * 0.02;
-          } else {
-            newReading += (Math.random() - 0.48) * 0.05;
-          }
-
-          newReading = Math.max(0.3, Math.round(newReading * 100) / 100);
-
-          let status: SensorNode['status'] = 'online';
-          let tinyml: SensorNode['tinymlStatus'] = 'normal';
-
-          if (node.battery < 25 && node.battery > 0) status = 'warning';
-          if (newReading >= node.criticalThreshold) {
-            status = 'critical';
-            tinyml = 'anomaly_detected';
-          } else if (newReading >= node.warningThreshold) {
-            status = 'warning';
-            tinyml = tick % 4 === 0 ? 'processing' : 'anomaly_detected';
-          }
-
-          if (node.status === 'offline') status = 'offline';
-
-          return {
-            ...node,
-            currentReading: newReading,
-            status,
-            tinymlStatus: tinyml,
-            lastUpdated: timeAgo(Math.floor(Math.random() * 60) + 1),
-          };
-        }),
-      );
-
-      // Append new point to histories
-      setReadingHistories(prev => {
-        const next = { ...prev };
-        Object.keys(next).forEach(id => {
-          const lastVal = next[id][next[id].length - 1]?.value ?? 1;
-          const noise = (Math.random() - 0.48) * 0.1;
-          const bump = id === 'SN-004' ? 0.04 : 0;
-          next[id] = [
-            ...next[id].slice(-95),
-            {
-              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              value: Math.round((lastVal + noise + bump) * 100) / 100,
-            },
-          ];
-        });
-        return next;
-      });
-    }, 3000);
-
-    return () => clearInterval(iv);
-  }, []);
-
-  const stats = {
-    total: nodes.length,
-    online: nodes.filter(n => n.status === 'online').length,
-    warning: nodes.filter(n => n.status === 'warning').length,
-    critical: nodes.filter(n => n.status === 'critical').length,
-    offline: nodes.filter(n => n.status === 'offline').length,
-    avgBattery: Math.round(nodes.filter(n => n.status !== 'offline').reduce((a, n) => a + n.battery, 0) / Math.max(nodes.filter(n => n.status !== 'offline').length, 1)),
+  const base: SensorNode = {
+    id: row.id,
+    ...(row.public_code ? { publicCode: row.public_code } : {}),
+    name: row.name,
+    location: row.location,
+    coordinates: [row.latitude, row.longitude],
+    type: row.type,
+    water_level_cm: isWater ? waterCm : 0,
+    battery_voltage: voltage,
+    node_status: nodeStatus,
+    signal_strength: row.signal_strength,
+    currentReading,
+    readingUnit: row.reading_unit,
+    lastUpdated: formatLastUpdated(latest?.recorded_at),
+    tinymlStatus: asTinyml(row.tinyml_status),
+    firmwareVersion: row.firmware_version,
+    installedDate: row.installed_date?.slice(0, 10) ?? '',
+    assignedWarden: row.assigned_warden,
+    warningThreshold: Number(row.warning_threshold),
+    criticalThreshold: Number(row.critical_threshold),
   };
 
-  return { nodes, readingHistories, stats };
+  const wl = getWaterLevelSeverity(base);
+  if (wl === 'critical') {
+    return { ...base, tinymlStatus: 'anomaly_detected' };
+  }
+  if (wl === 'warning') {
+    return { ...base, tinymlStatus: 'anomaly_detected' };
+  }
+  return base;
+}
+
+function buildHistories(
+  nodes: SensorNode[],
+  rows: TelemetryHistoryRow[] | null | undefined,
+): Record<string, ReadingPoint[]> {
+  const typeById = new Map(nodes.map((n) => [n.id, n.type]));
+  const out: Record<string, ReadingPoint[]> = {};
+  for (const n of nodes) {
+    out[n.id] = [];
+  }
+  if (!rows?.length) return out;
+
+  for (const r of rows) {
+    const t = typeById.get(r.sensor_node_id);
+    if (!t) continue;
+    const value =
+      t === 'water_level' ? Number(r.water_level_cm) : Number(r.scalar_reading ?? 0);
+    const time = new Date(r.recorded_at).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    if (!out[r.sensor_node_id]) out[r.sensor_node_id] = [];
+    out[r.sensor_node_id].push({ time, value: Math.round(value * 10) / 10 });
+  }
+
+  for (const id of Object.keys(out)) {
+    const arr = out[id];
+    if (arr.length > 96) {
+      out[id] = arr.slice(-96);
+    }
+  }
+  return out;
+}
+
+async function fetchSensorNetwork(): Promise<{
+  nodes: SensorNode[];
+  readingHistories: Record<string, ReadingPoint[]>;
+}> {
+  if (!supabase) {
+    return { nodes: [], readingHistories: {} };
+  }
+
+  const fromIso = new Date(Date.now() - 48 * 3600000).toISOString();
+
+  const [nodesRes, latestRes, histRes] = await Promise.all([
+    supabase.from('sensor_nodes').select('*').order('name'),
+    supabase.rpc('latest_telemetry_by_node'),
+    supabase
+      .from('telemetry_readings')
+      .select('sensor_node_id, water_level_cm, scalar_reading, recorded_at')
+      .gte('recorded_at', fromIso)
+      .order('recorded_at', { ascending: true })
+      .limit(8000),
+  ]);
+
+  if (nodesRes.error) throw nodesRes.error;
+  if (latestRes.error) throw latestRes.error;
+  if (histRes.error) throw histRes.error;
+
+  const nodeRows = (nodesRes.data ?? []) as SensorNodeRow[];
+  const latestRows = (latestRes.data ?? []) as TelemetryLatestRow[];
+  const latestByNode = new Map(latestRows.map((r) => [r.sensor_node_id, r]));
+
+  const nodes = nodeRows.map((row) => mapRowToSensorNode(row, latestByNode.get(row.id)));
+  const readingHistories = buildHistories(nodes, histRes.data as TelemetryHistoryRow[] | undefined);
+
+  return { nodes, readingHistories };
+}
+
+const QUERY_KEY = ['sensor-network'] as const;
+
+const TELEMETRY_SIMULATOR_MS = 8_000;
+
+function simulateTelemetryRow(node: SensorNode): {
+  sensor_node_id: string;
+  water_level_cm: number;
+  battery_voltage: number;
+  node_status: SensorNode['node_status'];
+  scalar_reading: number | null;
+} {
+  const drift = (Math.random() - 0.5) * 4;
+  const bat = Math.max(
+    2.85,
+    Math.min(3.25, node.battery_voltage + (Math.random() - 0.5) * 0.04),
+  );
+  const lowBat = bat < 3.0;
+  if (node.type === 'water_level') {
+    return {
+      sensor_node_id: node.id,
+      water_level_cm: Math.max(0, node.water_level_cm + drift),
+      battery_voltage: bat,
+      node_status: lowBat ? 'low_battery' : 'online',
+      scalar_reading: null,
+    };
+  }
+  return {
+    sensor_node_id: node.id,
+    water_level_cm: 0,
+    battery_voltage: bat,
+    node_status: lowBat ? 'low_battery' : 'online',
+    scalar_reading: Math.max(0, node.currentReading + drift),
+  };
+}
+
+/**
+ * Live values come from the **latest row** per node in `telemetry_readings`.
+ * Motion in the UI = gateways **inserting new rows** often + this hook **refetching**.
+ * We use Supabase Realtime on INSERT (instant) and a short poll (fallback).
+ *
+ * Without hardware, set `VITE_SIMULATE_TELEMETRY=true` to INSERT drifted readings on a timer.
+ */
+export function useSensorNetwork() {
+  const queryClient = useQueryClient();
+  const invalidateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const simulateTelemetry = import.meta.env.VITE_SIMULATE_TELEMETRY === 'true';
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) return;
+
+    const scheduleRefetch = () => {
+      if (invalidateDebounceRef.current) clearTimeout(invalidateDebounceRef.current);
+      invalidateDebounceRef.current = setTimeout(() => {
+        invalidateDebounceRef.current = null;
+        void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      }, 200);
+    };
+
+    const channel = supabase
+      .channel('hydrosentry-telemetry')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'telemetry_readings' },
+        scheduleRefetch,
+      )
+      .subscribe((status, err) => {
+        if (import.meta.env.DEV && status === 'CHANNEL_ERROR') {
+          console.warn(
+            '[HydroSentry] Realtime channel error — charts still refresh on poll. Check that',
+            '`telemetry_readings` is in publication `supabase_realtime` (see supabase_schema.sql).',
+            err,
+          );
+        }
+      });
+
+    return () => {
+      if (invalidateDebounceRef.current) clearTimeout(invalidateDebounceRef.current);
+      void supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  useEffect(() => {
+    if (!simulateTelemetry || !isSupabaseConfigured || !supabase) return;
+
+    const tick = async () => {
+      const cached = queryClient.getQueryData<{ nodes: SensorNode[] }>(QUERY_KEY);
+      if (!cached?.nodes?.length) return;
+      const shuffled = [...cached.nodes].sort(() => Math.random() - 0.5);
+      const picks = shuffled.slice(0, Math.min(4, shuffled.length));
+      for (const node of picks) {
+        const row = simulateTelemetryRow(node);
+        const { error } = await supabase.from('telemetry_readings').insert(row);
+        if (error && import.meta.env.DEV) console.warn('[HydroSentry] telemetry sim insert:', error.message);
+      }
+    };
+
+    const id = setInterval(() => void tick(), TELEMETRY_SIMULATOR_MS);
+    const boot = setTimeout(() => void tick(), 1_500);
+    return () => {
+      clearInterval(id);
+      clearTimeout(boot);
+    };
+  }, [queryClient, simulateTelemetry]);
+
+  const query = useQuery({
+    queryKey: QUERY_KEY,
+    queryFn: fetchSensorNetwork,
+    enabled: isSupabaseConfigured && supabase !== null,
+    refetchInterval: 5_000,
+    staleTime: 3_000,
+  });
+
+  const nodes = query.data?.nodes ?? [];
+  const readingHistories = query.data?.readingHistories ?? {};
+
+  const stats = useMemo(() => {
+    const n = query.data?.nodes ?? [];
+    const activeForAvg = n.filter((node) => node.node_status !== 'offline');
+    const avgBatteryVoltage =
+      activeForAvg.length === 0
+        ? 0
+        : Math.round(
+            (activeForAvg.reduce((a, node) => a + node.battery_voltage, 0) / activeForAvg.length) * 1000,
+          ) / 1000;
+
+    return {
+      total: n.length,
+      online: n.filter((node) => node.node_status === 'online').length,
+      lowBattery: n.filter((node) => node.node_status === 'low_battery').length,
+      hydroWarning: n.filter((node) => getWaterLevelSeverity(node) === 'warning').length,
+      hydroCritical: n.filter((node) => getWaterLevelSeverity(node) === 'critical').length,
+      offline: n.filter((node) => node.node_status === 'offline').length,
+      avgBatteryVoltage,
+    };
+  }, [query.data]);
+
+  return {
+    nodes,
+    readingHistories,
+    stats,
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  };
 }

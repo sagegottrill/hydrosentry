@@ -23,7 +23,7 @@ export function HydroSentryLogo({ size = 'default' }: { size?: 'small' | 'defaul
           strokeWidth={2.5}
         />
       </div>
-      <span className={`font-semibold text-foreground ${text}`}>
+      <span className={`font-medium tracking-tight text-foreground ${text}`}>
         Hydro<span className="text-primary">Sentry</span>
       </span>
     </div>

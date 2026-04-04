@@ -1,47 +1,113 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import {
-    ArrowRight, Shield, Cpu, Radio,
-    Users, Droplets, Zap, Globe,
-    Activity, MapPin, Clock, ChevronRight
+    ArrowRight,
+    ArrowUpRight,
+    Shield,
+    Cpu,
+    Radio,
+    Droplets,
+    Zap,
+    MapPin,
+    Github,
+    LayoutDashboard,
 } from 'lucide-react';
+
+/** Set `VITE_GITHUB_REPO_URL` in `.env` to your public repository. */
+const GITHUB_REPO_URL =
+    import.meta.env.VITE_GITHUB_REPO_URL ?? 'https://github.com/orivon-edge/hydrosentry';
+
 import { Button } from '@/components/ui/button';
 import { HydroSentryLogo } from '@/components/HydroSentryLogo';
-
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import { ReactLenis } from '@studio-freight/react-lenis';
 
-// ── Operational Status Ticker ──────────────────────────────────
-function StatusTicker() {
+function TopBarClock() {
     const [time, setTime] = useState(new Date());
-    useEffect(() => { const iv = setInterval(() => setTime(new Date()), 1000); return () => clearInterval(iv); }, []);
+    useEffect(() => {
+        const iv = setInterval(() => setTime(new Date()), 1000);
+        return () => clearInterval(iv);
+    }, []);
     return (
-        <div className="flex items-center gap-4 text-xs font-mono tracking-wide">
-            <span className="flex items-center gap-1.5">
-                <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+        <div className="hidden text-[11px] font-medium text-slate-500 sm:flex sm:items-center sm:gap-3">
+            <span className="flex items-center gap-1.5 text-emerald-700">
+                <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 </span>
-                <span className="text-emerald-700 uppercase font-semibold">Operational</span>
+                Pilot program
             </span>
-            <span className="text-slate-300">|</span>
-            <span className="text-slate-600">{time.toLocaleTimeString('en-US', { hour12: false })} WAT</span>
-            <span className="text-slate-300">|</span>
-            <span className="text-slate-600">Borno State, Nigeria</span>
+            <span className="text-slate-300">·</span>
+            <span>{time.toLocaleTimeString('en-US', { hour12: false })} WAT</span>
+            <span className="text-slate-300">·</span>
+            <span>Borno State</span>
         </div>
     );
 }
 
-import { ReactLenis } from '@studio-freight/react-lenis';
+const MARQUEE_ITEMS = [
+    'Open hardware',
+    'LoRaWAN mesh',
+    'Lake Chad Basin',
+    'Offline-first',
+    'TinyML at the edge',
+    'Data sovereignty',
+    'Youth-maintained',
+    'BOSEPA coordination',
+];
 
-// ── Component ──────────────────────────────────────────────────
+function MarqueeStrip() {
+    const doubled = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
+    return (
+        <div className="border-y border-primary/20 bg-primary py-3 text-primary-foreground">
+            <div className="relative overflow-hidden">
+                <div className="landing-marquee-track flex w-max gap-10 px-4 text-xs font-semibold uppercase tracking-[0.2em]">
+                    {doubled.map((label, i) => (
+                        <span key={`${label}-${i}`} className="flex shrink-0 items-center gap-10">
+                            <span>{label}</span>
+                            <span className="text-primary-foreground/40">◆</span>
+                        </span>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function HeroVisual() {
+    return (
+        <div className="relative mx-auto aspect-square w-full max-w-md lg:max-w-none lg:mx-0">
+            <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-slate-100 via-white to-sky-50/90 shadow-[0_24px_80px_-24px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/80" />
+            <div className="absolute inset-[8%] rounded-[1.5rem] border border-slate-200/60 bg-white/80 backdrop-blur-sm">
+                <div className="absolute inset-0 opacity-[0.35] bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:1.5rem_1.5rem]" />
+                <div className="absolute left-[18%] top-[22%] h-3 w-3 rounded-full bg-primary shadow-[0_0_0_4px_rgba(2,132,199,0.15)]" />
+                <div className="absolute left-[52%] top-[38%] h-3 w-3 rounded-full bg-amber-500 shadow-[0_0_0_4px_rgba(245,158,11,0.2)]" />
+                <div className="absolute left-[68%] top-[58%] h-3 w-3 rounded-full bg-primary shadow-[0_0_0_4px_rgba(2,132,199,0.15)]" />
+                <div className="absolute left-[32%] top-[62%] h-3 w-3 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.2)]" />
+                <div className="absolute left-[12%] top-[48%] right-[20%] h-px rotate-[18deg] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+                <div className="absolute bottom-[20%] left-[24%] right-[28%] h-px -rotate-[12deg] bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
+                <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between rounded-xl border border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm">
+                    <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                        <MapPin className="h-4 w-4 text-primary" strokeWidth={1.75} />
+                        Situational overview
+                    </div>
+                    <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                        Demo
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function Landing() {
     const navigate = useNavigate();
     const [scrollProgress, setScrollProgress] = useState(0);
 
     const heroRef = useRef<HTMLElement>(null);
-    const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-    const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
+    const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+    const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '40%']);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -52,303 +118,477 @@ export default function Landing() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+
     return (
         <ReactLenis root>
-            <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-sky-100 overflow-clip" style={{ fontFamily: "'Source Sans 3', sans-serif" }}>
-                {/* Scroll Progress */}
-                <div className="scroll-progress shadow-[0_0_10px_rgba(2,132,199,0.5)]" style={{ width: `${scrollProgress}%` }} />
+            <div className="min-h-screen overflow-x-clip bg-[#f8fafc] font-sans text-slate-900 antialiased selection:bg-sky-100">
+                <div
+                    className="fixed left-0 top-0 z-[60] h-0.5 bg-primary transition-[width] duration-150 ease-out"
+                    style={{ width: `${scrollProgress}%` }}
+                />
 
-                {/* ───── NAV ──────────────────────────────────────────── */}
-                <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-sm">
-                    <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
+                <div className="border-b border-slate-200/80 bg-white">
+                    <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 sm:px-6">
+                        <p className="text-[11px] font-medium tracking-wide text-slate-500">
+                            Open-source edge infrastructure · Lake Chad Basin
+                        </p>
+                        <TopBarClock />
+                    </div>
+                </div>
+
+                <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+                    <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
                         <HydroSentryLogo size="small" />
-                        <div className="flex items-center gap-6">
-                            <StatusTicker />
-                            <div className="h-6 w-px bg-slate-200 hidden md:block" />
+                        <div className="hidden items-center gap-8 md:flex">
+                            {[
+                                ['Challenge', 'crisis'],
+                                ['Architecture', 'architecture'],
+                                ['Capabilities', 'capabilities'],
+                                ['Get started', 'cta-footer'],
+                            ].map(([label, id]) => (
+                                <button
+                                    key={id}
+                                    type="button"
+                                    onClick={() => scrollTo(id)}
+                                    className="text-sm font-medium text-slate-600 transition-colors hover:text-primary"
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-2 sm:gap-3">
                             <Button
-                                onClick={() => navigate('/login')}
+                                variant="outline"
                                 size="sm"
-                                className="bg-[#005587] hover:bg-[#003d63] text-white text-xs font-semibold px-6 h-9 rounded shadow-sm transition-all hover:shadow-md"
+                                className="hidden h-9 border-slate-200 text-slate-700 sm:inline-flex"
+                                onClick={() => navigate('/dashboard')}
                             >
-                                System Login
+                                Live demo
+                            </Button>
+                            <Button size="sm" className="h-9 bg-primary px-4 font-semibold hover:bg-primary/90" onClick={() => navigate('/login')}>
+                                Operator login
                             </Button>
                         </div>
                     </div>
                 </nav>
 
-                {/* ───── HERO ─────────────────────────────────────────── */}
-                <section ref={heroRef} className="relative overflow-hidden bg-white border-b border-slate-200">
+                <section
+                    ref={heroRef}
+                    className="relative overflow-hidden border-b border-slate-200/80 bg-white"
+                >
                     <motion.div
                         style={{ y: bgY }}
-                        className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20"
+                        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(14,165,233,0.12),transparent)]"
                     />
+                    <div className="relative mx-auto grid max-w-7xl gap-12 px-4 pb-16 pt-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:pb-24 lg:pt-12">
+                        <div>
+                            <ScrollReveal animation="blur-in">
+                                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-sky-200/80 bg-sky-50/90 px-3.5 py-1.5 text-sky-900 shadow-sm">
+                                    <Shield className="h-3.5 w-3.5 text-primary" strokeWidth={1.75} />
+                                    <span className="text-[11px] font-semibold uppercase tracking-[0.14em]">
+                                        Open infrastructure · Climate, peace & security
+                                    </span>
+                                </div>
+                            </ScrollReveal>
 
-                    <div className="relative max-w-5xl mx-auto px-6 pt-24 pb-20 text-center">
-                        <ScrollReveal animation="blur-in">
-                            {/* System Badge */}
-                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-sky-200 bg-sky-50 text-sky-800 mb-8 shadow-sm">
-                                <Shield className="h-4 w-4" />
-                                <span className="text-xs font-semibold uppercase tracking-wider">
-                                    Early Warning System • Climate, Peace & Security
-                                </span>
-                            </div>
+                            <ScrollReveal animation="fade-up" delay={0.08}>
+                                <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl lg:text-[3.25rem] lg:leading-[1.06]">
+                                    Open-Source Edge Infrastructure for{' '}
+                                    <span className="text-primary">Climate Resilience</span>
+                                </h1>
+                            </ScrollReveal>
 
-                        </ScrollReveal>
+                            <ScrollReveal animation="fade-up" delay={0.15}>
+                                <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
+                                    HydroSentry is a localized, offline-first early warning blueprint protecting the Lake Chad Basin.
+                                    Built entirely on open hardware and open data, maintained by local youth.
+                                </p>
+                            </ScrollReveal>
 
-                        <ScrollReveal animation="fade-up" delay={0.2}>
-                            {/* Title */}
-                            <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.1] text-slate-900 mb-6">
-                                Decentralized Intelligence for <span className="text-[#005587]">Climate Resilience</span>
-                            </h1>
-                        </ScrollReveal>
+                            <ScrollReveal animation="fade-up" delay={0.22}>
+                                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                                    <Button
+                                        size="lg"
+                                        className="h-12 rounded-xl bg-primary px-7 text-base font-semibold shadow-lg shadow-primary/15 hover:bg-primary/90"
+                                        onClick={() => navigate('/dashboard')}
+                                    >
+                                        Access live demo
+                                        <ArrowRight className="ml-2 h-5 w-5" />
+                                    </Button>
+                                    <Button size="lg" variant="outline" asChild className="h-12 rounded-xl border-2 border-slate-200 px-7 text-base font-semibold">
+                                        <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer">
+                                            <Github className="mr-2 h-5 w-5" />
+                                            View GitHub
+                                        </a>
+                                    </Button>
+                                </div>
+                            </ScrollReveal>
+                        </div>
 
-                        <ScrollReveal animation="fade-up" delay={0.35}>
-                            {/* Subtitle */}
-                            <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-                                HydroSentry protects off-grid, displacement-affected communities in the Lake Chad Basin through edge AI, autonomous LoRaWAN alerts, and youth-led action.
-                            </p>
-                        </ScrollReveal>
-
-                        <ScrollReveal animation="fade-up" delay={0.5}>
-                            {/* CTAs */}
-                            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
-                                <Button
-                                    onClick={() => navigate('/login')}
-                                    className="bg-[#005587] hover:bg-[#003d63] text-white text-base font-semibold px-8 h-12 rounded-lg shadow-lifted transition-all hover:shadow-lg w-full sm:w-auto"
-                                >
-                                    Access Command Center <ArrowRight className="ml-2 h-5 w-5" />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => document.getElementById('architecture')?.scrollIntoView({ behavior: 'smooth' })}
-                                    className="border-slate-300 text-slate-700 hover:bg-slate-50 border-2 text-base font-semibold px-8 h-12 rounded-lg transition-all w-full sm:w-auto"
-                                >
-                                    View Architecture
-                                </Button>
-                            </div>
+                        <ScrollReveal animation="fade-up" delay={0.18}>
+                            <HeroVisual />
                         </ScrollReveal>
                     </div>
                 </section>
 
-                {/* ───── STATS BAR ────────────────────────────────────── */}
+                <div className="relative z-10 -mt-6 px-4 sm:px-6">
+                    <div className="mx-auto grid max-w-7xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        <button
+                            type="button"
+                            onClick={() => navigate('/dashboard')}
+                            className="group flex flex-col rounded-2xl bg-primary p-6 text-left text-primary-foreground shadow-xl shadow-primary/20 transition hover:bg-primary/95"
+                        >
+                            <LayoutDashboard className="mb-4 h-8 w-8 opacity-90" strokeWidth={1.5} />
+                            <p className="text-lg font-semibold">Live demo</p>
+                            <p className="mt-1 text-sm text-primary-foreground/85">Map, telemetry UI, pilot simulation</p>
+                            <span className="mt-4 inline-flex items-center text-sm font-semibold">
+                                Open console
+                                <ArrowUpRight className="ml-1 h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                            </span>
+                        </button>
+                        <a
+                            href={GITHUB_REPO_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex flex-col rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+                        >
+                            <Github className="mb-4 h-8 w-8 text-slate-800" strokeWidth={1.5} />
+                            <p className="text-lg font-semibold text-slate-900">Repository</p>
+                            <p className="mt-1 text-sm text-slate-600">Firmware, schema, and app source</p>
+                            <span className="mt-4 inline-flex items-center text-sm font-semibold text-primary">
+                                GitHub
+                                <ArrowUpRight className="ml-1 h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                            </span>
+                        </a>
+                        <button
+                            type="button"
+                            onClick={() => scrollTo('architecture')}
+                            className="group flex flex-col rounded-2xl border border-slate-200/90 bg-white p-6 text-left shadow-sm transition hover:border-slate-300 hover:shadow-md"
+                        >
+                            <Cpu className="mb-4 h-8 w-8 text-slate-800" strokeWidth={1.5} />
+                            <p className="text-lg font-semibold text-slate-900">Architecture</p>
+                            <p className="mt-1 text-sm text-slate-600">Sense, process, alert — offline-first</p>
+                            <span className="mt-4 inline-flex items-center text-sm font-semibold text-primary">
+                                How it works
+                                <ArrowUpRight className="ml-1 h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                            </span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => navigate('/login')}
+                            className="group flex flex-col rounded-2xl border border-slate-200/90 bg-white p-6 text-left shadow-sm transition hover:border-slate-300 hover:shadow-md"
+                        >
+                            <Shield className="mb-4 h-8 w-8 text-slate-800" strokeWidth={1.5} />
+                            <p className="text-lg font-semibold text-slate-900">Operator access</p>
+                            <p className="mt-1 text-sm text-slate-600">Secure login for field coordination</p>
+                            <span className="mt-4 inline-flex items-center text-sm font-semibold text-primary">
+                                Sign in
+                                <ArrowUpRight className="ml-1 h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <div className="mt-14">
+                    <MarqueeStrip />
+                </div>
+
                 <ScrollReveal>
-                    <section className="bg-white border-b border-slate-200 shadow-sm relative z-10 -mt-px">
-                        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 divide-x divide-slate-100">
+                    <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
+                        <div className="grid gap-4 sm:grid-cols-3">
                             {[
-                                { value: '10', label: 'Sensor Nodes', sub: 'Active LoRaWAN Mesh', icon: Radio },
-                                { value: '847', label: 'SMS Alerts', sub: 'Successfully Dispatched', icon: Activity },
-                                { value: '9/10', label: 'Network Health', sub: 'Online Status', icon: Globe },
-                                { value: '< 1s', label: 'Inference Time', sub: 'Edge AI Processing', icon: Zap },
+                                {
+                                    value: '10',
+                                    label: 'Active pilot nodes',
+                                    sub: 'Current deployment scale (pilot)',
+                                    icon: Radio,
+                                },
+                                {
+                                    value: 'Demo',
+                                    label: 'Simulated telemetry health',
+                                    sub: 'Prototype UI; seed data — not live production traffic',
+                                    icon: Cpu,
+                                },
+                                {
+                                    value: '< 1s',
+                                    label: 'Target inference',
+                                    sub: 'Design goal for on-device edge processing',
+                                    icon: Zap,
+                                },
                             ].map((s, i) => (
-                                <div key={i} className="px-6 py-8 text-center bg-slate-50/50 hover:bg-sky-50/50 transition-colors">
-                                    <s.icon className="h-6 w-6 text-[#005587] mx-auto mb-3 opacity-80" />
-                                    <p className="text-3xl font-extrabold text-slate-900 tabular-nums tracking-tight">{s.value}</p>
-                                    <p className="text-sm font-semibold text-slate-700 mt-2">{s.label}</p>
-                                    <p className="text-xs text-slate-500 mt-1">{s.sub}</p>
+                                <div
+                                    key={i}
+                                    className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+                                >
+                                    <s.icon className="mb-4 h-7 w-7 text-primary" strokeWidth={1.5} />
+                                    <p className="text-3xl font-semibold tabular-nums tracking-tight text-slate-900">{s.value}</p>
+                                    <p className="mt-2 text-sm font-semibold text-slate-800">{s.label}</p>
+                                    <p className="mt-1.5 text-xs leading-relaxed text-slate-500">{s.sub}</p>
                                 </div>
                             ))}
                         </div>
                     </section>
                 </ScrollReveal>
 
-                {/* ── PREMIUM STICKY SCROLL CONTAINER ───────────────── */}
-                <div className="relative">
-                    {/* ───── THE CRISIS ───────────────────────────────────── */}
-                    <section className="sticky top-[4rem] min-h-[calc(100vh-4rem)] flex flex-col justify-center py-20 px-6 bg-slate-50 z-10">
-                        <div className="max-w-5xl mx-auto w-full">
-                            <ScrollReveal>
-                                <div className="mb-14">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="h-[2px] w-8 bg-rose-600" />
-                                        <p className="text-xs font-bold uppercase tracking-widest text-rose-600">Context & Challenge</p>
+                <section id="crisis" className="scroll-mt-20 border-t border-slate-200/80 bg-slate-50/80 py-20 sm:py-24">
+                    <div className="mx-auto max-w-7xl px-4 sm:px-6">
+                        <ScrollReveal>
+                            <div className="mb-12 max-w-3xl">
+                                <span className="inline-block rounded-md bg-rose-100 px-2.5 py-1 text-[11px] font-bold uppercase tracking-widest text-rose-800">
+                                    Context & challenge
+                                </span>
+                                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-[2.5rem] lg:leading-tight">
+                                    Climate shocks are multiplying conflict in Northeast Nigeria.
+                                </h2>
+                                <p className="mt-6 text-base leading-relaxed text-slate-600 sm:text-lg">
+                                    The September 2024 Alau Dam collapse displaced 400,000 people in Maiduguri with zero effective
+                                    last-mile warning. Existing systems rely heavily on cloud infrastructure that fails exactly when communities
+                                    need it most—during telecom blackouts caused by severe weather.
+                                </p>
+                            </div>
+                        </ScrollReveal>
+
+                        <ScrollReveal className="stagger-children">
+                            <div className="grid gap-5 md:grid-cols-3">
+                                {[
+                                    {
+                                        stat: '400K+',
+                                        label: 'People Displaced',
+                                        desc: 'From recent severe flooding events lacking last-mile community alerts.',
+                                        accent: 'border-t-rose-500 bg-white',
+                                    },
+                                    {
+                                        stat: '<1%',
+                                        label: 'Youth Climate Funding',
+                                        desc: 'Despite youth constituting nearly half the affected population.',
+                                        accent: 'border-t-amber-500 bg-white',
+                                    },
+                                    {
+                                        stat: 'Zero',
+                                        label: 'Offline Resilience',
+                                        desc: 'Current early warning systems fail when internet connectivity drops.',
+                                        accent: 'border-t-slate-400 bg-white',
+                                    },
+                                ].map((c, i) => (
+                                    <div
+                                        key={i}
+                                        className={`rounded-2xl border border-slate-200/90 border-t-4 p-8 shadow-sm ${c.accent} transition hover:shadow-md`}
+                                    >
+                                        <p className="text-3xl font-semibold tabular-nums tracking-tight text-slate-900">{c.stat}</p>
+                                        <p className="mt-3 text-base font-semibold text-slate-900">{c.label}</p>
+                                        <p className="mt-2 text-sm leading-relaxed text-slate-600">{c.desc}</p>
                                     </div>
-                                    <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight max-w-3xl">
-                                        Climate shocks are multiplying conflict in Northeast Nigeria.
-                                    </h2>
-                                    <p className="text-lg text-slate-600 mt-6 max-w-2xl leading-relaxed">
-                                        The September 2024 Alau Dam collapse displaced 400,000 people in Maiduguri with zero effective
-                                        last-mile warning. Existing systems rely heavily on cloud infrastructure that fails exactly when communities
-                                        need it most—during telecom blackouts caused by severe weather.
+                                ))}
+                            </div>
+                        </ScrollReveal>
+                    </div>
+                </section>
+
+                <section id="architecture" className="scroll-mt-20 border-t border-slate-200/80 bg-white py-20 sm:py-24">
+                    <div className="mx-auto max-w-7xl px-4 sm:px-6">
+                        <ScrollReveal>
+                            <div className="mx-auto mb-14 max-w-3xl text-center">
+                                <span className="inline-block rounded-md bg-primary/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-widest text-primary">
+                                    Technical architecture
+                                </span>
+                                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-[2.5rem]">
+                                    Sense, process, alert. Offline-first by design.
+                                </h2>
+                                <p className="mt-5 text-base leading-relaxed text-slate-600 sm:text-lg">
+                                    HydroSentry&apos;s early warning pipeline is engineered to run when the cloud cannot — maximum resilience in
+                                    austere environments, with{' '}
+                                    <strong className="font-semibold text-slate-800">data sovereignty</strong> for the communities it serves.
+                                </p>
+                                <div className="mt-8 rounded-2xl border border-slate-200/90 bg-slate-50/90 p-6 text-left text-sm leading-relaxed text-slate-600 sm:p-8 sm:text-base">
+                                    <p>
+                                        <strong className="font-semibold text-slate-800">Right to repair.</strong> Hardware is built from easily
+                                        sourced, non-proprietary parts — ESP32-class MCUs, standard LiFePO₄ cells, and commodity sensors — so nodes
+                                        can be maintained locally without vendor lock-in.
+                                    </p>
+                                    <p className="mt-4">
+                                        <strong className="font-semibold text-slate-800">Community-owned data.</strong> Telemetry and alert logic are
+                                        designed to stay with the Lake Chad Basin operator and communities — not siloed on a hyperscaler in Virginia.
+                                        Open data practices keep stewardship transparent and auditable.
                                     </p>
                                 </div>
-                            </ScrollReveal>
-
-                            <ScrollReveal className="stagger-children">
-                                <div className="grid md:grid-cols-3 gap-6">
-                                    {[
-                                        { stat: '400K+', label: 'People Displaced', desc: 'From recent severe flooding events lacking last-mile community alerts.', color: 'border-rose-600', iconColor: 'text-rose-600', bg: 'bg-rose-50' },
-                                        { stat: '<1%', label: 'Youth Climate Funding', desc: 'Despite youth constituting nearly half the affected population.', color: 'border-amber-500', iconColor: 'text-amber-600', bg: 'bg-amber-50' },
-                                        { stat: 'Zero', label: 'Offline Resilience', desc: 'Current early warning systems fail when internet connectivity drops.', color: 'border-slate-400', iconColor: 'text-slate-600', bg: 'bg-slate-100' },
-                                    ].map((c, i) => (
-                                        <div key={i} className={`p-8 rounded-xl bg-white border border-slate-200 shadow-sm border-t-4 ${c.color} hover:shadow-xl hover:-translate-y-1 transition-all duration-300`}>
-                                            <p className={`text-4xl font-black ${c.iconColor} tracking-tight`}>{c.stat}</p>
-                                            <p className="text-base font-bold text-slate-900 mt-3">{c.label}</p>
-                                            <p className="text-sm text-slate-600 mt-2 leading-relaxed">{c.desc}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </ScrollReveal>
-                        </div>
-                    </section>
-
-                    {/* ───── ARCHITECTURE ─────────────────────────────────── */}
-                    <section id="architecture" className="sticky top-[4rem] min-h-[calc(100vh-4rem)] flex flex-col justify-center py-20 px-6 bg-white border-t border-slate-200 shadow-[0_-20px_40px_rgba(0,0,0,0.03)] z-20">
-                        <div className="max-w-5xl mx-auto w-full">
-                            <ScrollReveal>
-                                <div className="mb-16 md:text-center">
-                                    <div className="flex items-center md:justify-center gap-3 mb-4">
-                                        <div className="h-[2px] w-8 bg-[#005587]" />
-                                        <p className="text-xs font-bold uppercase tracking-widest text-[#005587]">Technical Architecture</p>
-                                        <div className="h-[2px] w-8 bg-[#005587] hidden md:block" />
-                                    </div>
-                                    <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
-                                        Sense, Process, Alert. Completely Offline.
-                                    </h2>
-                                    <p className="text-lg text-slate-600 mt-6 max-w-2xl mx-auto leading-relaxed">
-                                        HydroSentry's entire early warning pipeline operates independently of internet connectivity, engineered for maximum resilience in austere environments.
-                                    </p>
-                                </div>
-                            </ScrollReveal>
-
-                            <ScrollReveal className="stagger-children">
-                                <div className="grid md:grid-cols-3 gap-8">
-                                    {[
-                                        {
-                                            step: 'Phase 01', icon: Droplets, title: 'Sense & Collect',
-                                            desc: 'Rugged ultrasonic sensors measure water levels every 30 seconds. Solar-powered units ensure 5-10 years of continuous operation.',
-                                        },
-                                        {
-                                            step: 'Phase 02', icon: Cpu, title: 'Edge Processing',
-                                            desc: 'Embedded TinyML models continuously analyze flow patterns on the node, detecting dangerous anomalies locally in milliseconds.',
-                                        },
-                                        {
-                                            step: 'Phase 03', icon: Zap, title: 'Autonomous Dispatch',
-                                            desc: 'Upon threat detection, nodes autonomously trigger local sirens and utilize LoRaWAN gateways to dispatch SMS alerts bypassing internet outages.',
-                                        },
-                                    ].map((item, i) => (
-                                        <div key={i} className="relative p-8 rounded-xl bg-slate-50 border border-slate-200 hover:border-sky-300 hover:bg-sky-50 transition-all duration-300 group hover:-translate-y-1 hover:shadow-lg">
-                                            <div className="absolute top-8 right-8 text-4xl font-black text-slate-200 group-hover:text-sky-200 transition-colors duration-300">
-                                                {`0${i + 1}`}
-                                            </div>
-                                            <div className="w-12 h-12 rounded-lg bg-white border border-slate-200 flex items-center justify-center mb-6 shadow-sm group-hover:border-[#005587] group-hover:text-[#005587] group-hover:shadow-md transition-all duration-300">
-                                                <item.icon className="h-6 w-6 text-slate-600 group-hover:text-[#005587] transition-colors" />
-                                            </div>
-                                            <p className="text-xs font-bold uppercase tracking-wider text-sky-700 mb-2">{item.step}</p>
-                                            <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
-                                            <p className="text-sm text-slate-600 leading-relaxed">{item.desc}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </ScrollReveal>
-                        </div>
-                    </section>
-
-                    {/* ───── CAPABILITIES ─────────────────────────────────── */}
-                    <section className="sticky top-[4rem] min-h-[calc(100vh-4rem)] flex flex-col justify-center py-20 px-6 bg-slate-50 border-t border-slate-200 shadow-[0_-20px_40px_rgba(0,0,0,0.03)] z-30">
-                        <div className="max-w-6xl mx-auto w-full">
-                            <div className="grid lg:grid-cols-2 gap-16 items-center">
-                                <ScrollReveal>
-                                    <div>
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <div className="h-[2px] w-8 bg-[#005587]" />
-                                            <p className="text-xs font-bold uppercase tracking-widest text-[#005587]">Core Capabilities</p>
-                                        </div>
-                                        <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-6">
-                                            Empowering local wardens with actionable intelligence.
-                                        </h2>
-                                        <p className="text-lg text-slate-600 leading-relaxed mb-10">
-                                            Technology alone cannot save lives. HydroSentry merges resilient hardware with a community-led operational framework. We recruit, train, and equip local youth as Sensor Wardens—turning vulnerability into active resilience.
-                                        </p>
-
-                                        <ul className="space-y-6">
-                                            {[
-                                                { title: 'Youth-Led Maintenance', desc: '10 trained local wardens receive stipends to secure and maintain nodes.' },
-                                                { title: 'Dual-Crisis Monitoring', desc: 'Switches seamlessly between wet season flood risks and dry season conflict resource mapping.' },
-                                                { title: 'Incident Dispatcher', desc: 'Integrated command center for tracking maintenance, alerts, and community reports in real-time.' }
-                                            ].map((f, i) => (
-                                                <li key={i} className="flex gap-4 group cursor-default">
-                                                    <div className="flex-shrink-0 mt-1">
-                                                        <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center group-hover:bg-[#005587] transition-colors duration-300">
-                                                            <div className="w-3 h-3 rounded-full bg-[#005587] group-hover:bg-white transition-colors duration-300" />
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="text-base font-bold text-slate-900 group-hover:text-[#005587] transition-colors">{f.title}</h4>
-                                                        <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">{f.desc}</p>
-                                                    </div>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </ScrollReveal>
-
-                                <ScrollReveal className="bg-white p-2 rounded-2xl border border-slate-200 shadow-lifted hover:shadow-sky-900/10 transition-shadow duration-500">
-                                    <div className="aspect-[4/3] rounded-xl bg-slate-50 flex flex-col items-center justify-center border border-slate-200 p-8 text-center overflow-hidden relative group">
-                                        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1584281729054-0518dc90539b?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-10 group-hover:scale-105 group-hover:opacity-15 transition-all duration-700" />
-                                        <MapPin className="h-16 w-16 text-[#005587] mb-6 relative z-10 transform group-hover:-translate-y-2 transition-transform duration-500" />
-                                        <h3 className="text-2xl font-bold text-slate-900 mb-3 relative z-10">Command Center Interface</h3>
-                                        <p className="text-base text-slate-600 relative z-10 px-6">Displays active geospatial tracking, telemetry data, and real-time alert logs.</p>
-                                        <div className="w-full max-w-sm h-40 bg-white mt-10 rounded-t-xl border-x border-t border-slate-200 shadow-md relative z-10 flex px-6 pt-6 gap-4 transform group-hover:-translate-y-2 transition-transform duration-500 delay-100">
-                                            <div className="w-1/3 bg-slate-100 rounded-lg border border-slate-200" />
-                                            <div className="w-2/3 space-y-3">
-                                                <div className="h-5 bg-slate-100 rounded-md w-full" />
-                                                <div className="h-5 bg-slate-100 rounded-md w-5/6" />
-                                                <div className="h-5 bg-sky-50 rounded-md w-4/6 border border-sky-100" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </ScrollReveal>
                             </div>
-                        </div>
-                    </section>
-                </div>
+                        </ScrollReveal>
 
-                {/* ───── CTA ──────────────────────────────────────────── */}
-                <section className="py-24 px-6 border-t border-slate-200 bg-white">
-                    <ScrollReveal>
-                        <div className="max-w-3xl mx-auto text-center">
-                            <div className="w-16 h-16 bg-sky-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-sky-100">
-                                <Shield className="h-8 w-8 text-[#005587]" />
+                        <ScrollReveal className="stagger-children">
+                            <div className="grid gap-6 md:grid-cols-3">
+                                {[
+                                    {
+                                        step: '01',
+                                        icon: Droplets,
+                                        title: 'Sense & collect',
+                                        desc: 'Rugged ultrasonic sensors measure water levels every 30 seconds. Solar-powered units ensure 5-10 years of continuous operation.',
+                                    },
+                                    {
+                                        step: '02',
+                                        icon: Cpu,
+                                        title: 'Edge processing',
+                                        desc: 'Embedded TinyML models continuously analyze flow patterns on the node, detecting dangerous anomalies locally in milliseconds.',
+                                    },
+                                    {
+                                        step: '03',
+                                        icon: Zap,
+                                        title: 'Autonomous dispatch',
+                                        desc: 'Upon threat detection, nodes autonomously trigger local sirens and utilize LoRaWAN gateways to dispatch SMS alerts bypassing internet outages.',
+                                    },
+                                ].map((item, i) => (
+                                    <div
+                                        key={i}
+                                        className="group relative overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-50/50 p-8 transition hover:border-primary/25 hover:bg-white hover:shadow-lg"
+                                    >
+                                        <span className="absolute right-6 top-6 text-5xl font-semibold text-slate-200 transition group-hover:text-primary/15">
+                                            {item.step}
+                                        </span>
+                                        <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-sm transition group-hover:border-primary/30 group-hover:text-primary">
+                                            <item.icon className="h-6 w-6 text-slate-700 transition group-hover:text-primary" strokeWidth={1.5} />
+                                        </div>
+                                        <h3 className="text-lg font-semibold text-slate-900">{item.title}</h3>
+                                        <p className="mt-3 text-sm leading-relaxed text-slate-600">{item.desc}</p>
+                                    </div>
+                                ))}
                             </div>
-                            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-5">
-                                Access the HydroSentry Dashboard
+                        </ScrollReveal>
+                    </div>
+                </section>
+
+                <section id="capabilities" className="scroll-mt-20 border-t border-slate-200/80 bg-slate-50/80 py-20 sm:py-24">
+                    <div className="mx-auto grid max-w-7xl items-center gap-14 px-4 sm:px-6 lg:grid-cols-2 lg:gap-20">
+                        <ScrollReveal>
+                            <span className="inline-block rounded-md bg-primary/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-widest text-primary">
+                                Core capabilities
+                            </span>
+                            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-[2.5rem] lg:leading-tight">
+                                The Warden Guild: data sovereignty stewards on the ground.
                             </h2>
-                            <p className="text-base text-slate-600 mb-10 max-w-xl mx-auto leading-relaxed">
-                                Authorized personnel only. Review live telemetry, manage sensor nodes, and dispatch work orders through the secure Command Center interface.
+                            <p className="mt-6 text-base leading-relaxed text-slate-600 sm:text-lg">
+                                The stack is open; the <strong className="font-semibold text-slate-800">system</strong> is people. HydroSentry
+                                recruits, trains, and pays local youth as Sensor Wardens — a{' '}
+                                <strong className="font-semibold text-slate-800">local gig economy for climate resilience</strong> that maintains
+                                hardware, validates field reality, and keeps alert pathways accountable to communities — not distant platforms.
                             </p>
-                            <Button
-                                onClick={() => navigate('/login')}
-                                size="lg"
-                                className="bg-[#005587] hover:bg-[#003d63] text-white text-base font-semibold px-10 h-14 rounded-lg shadow-lg shadow-sky-900/10 transition-all hover:-translate-y-0.5"
-                            >
-                                Login to Secure Portal <ArrowRight className="ml-2 h-5 w-5" />
-                            </Button>
+                            <ul className="mt-10 space-y-8">
+                                {[
+                                    {
+                                        title: 'Data sovereignty stewards',
+                                        desc: 'Wardens are not “just” maintenance crews — they anchor data integrity, physical security, and community trust around each node.',
+                                    },
+                                    {
+                                        title: 'Dual-crisis monitoring',
+                                        desc: 'One operational rhythm across wet-season flood risk and dry-season resource stress — so the same local network adapts to the hazard in season.',
+                                    },
+                                    {
+                                        title: 'Incident dispatcher',
+                                        desc: 'Transparent workflows for maintenance, alerts, and field reports — built for coordination with BOSEPA and ward focal points.',
+                                    },
+                                ].map((f, i) => (
+                                    <li key={i} className="flex gap-4 border-b border-slate-200/80 pb-8 last:border-0 last:pb-0">
+                                        <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                                            {i + 1}
+                                        </div>
+                                        <div>
+                                            <h4 className="text-base font-semibold text-slate-900">{f.title}</h4>
+                                            <p className="mt-2 text-sm leading-relaxed text-slate-600">{f.desc}</p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </ScrollReveal>
+
+                        <ScrollReveal>
+                            <div className="overflow-hidden rounded-[1.75rem] border border-slate-200/90 bg-white shadow-[0_24px_80px_-32px_rgba(15,23,42,0.2)]">
+                                <div className="border-b border-slate-100 bg-slate-50/80 px-6 py-4">
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Demo console</p>
+                                    <p className="mt-1 text-sm font-medium text-slate-800">Situational map & dispatch</p>
+                                </div>
+                                <div className="relative aspect-[4/3] bg-gradient-to-br from-slate-100 to-sky-50/40 p-6">
+                                    <div className="absolute inset-4 rounded-xl border border-slate-200/80 bg-white/90 shadow-inner">
+                                        <div className="absolute inset-2 rounded-lg bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:12px_12px] opacity-60" />
+                                        <div className="absolute left-[20%] top-[30%] h-2 w-2 rounded-full bg-primary ring-4 ring-primary/20" />
+                                        <div className="absolute left-[55%] top-[45%] h-2 w-2 rounded-full bg-amber-500 ring-4 ring-amber-500/20" />
+                                        <div className="absolute left-[70%] top-[65%] h-2 w-2 rounded-full bg-primary ring-4 ring-primary/20" />
+                                    </div>
+                                    <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between rounded-lg border border-slate-200 bg-white/95 px-4 py-3 text-xs shadow-sm backdrop-blur-sm">
+                                        <span className="font-medium text-slate-600">Pilot telemetry · simulated</span>
+                                        <span className="rounded bg-emerald-500/15 px-2 py-0.5 font-semibold text-emerald-800">Live demo</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </ScrollReveal>
+                    </div>
+                </section>
+
+                <section id="cta-footer" className="scroll-mt-20 border-t border-slate-200/80 bg-white py-20 sm:py-24">
+                    <ScrollReveal>
+                        <div className="mx-auto max-w-5xl rounded-[2rem] border border-slate-200/90 bg-slate-50/90 px-6 py-14 text-center shadow-sm sm:px-10 sm:py-16">
+                            <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                                <Shield className="h-7 w-7" strokeWidth={1.5} />
+                            </div>
+                            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+                                Explore the stack — demo, code, or secure access
+                            </h2>
+                            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base">
+                                The live demo uses simulated pilot telemetry so reviewers can stress-test the UI honestly. For production
+                                deployments, use the secure operator login.
+                            </p>
+                            <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap">
+                                <Button
+                                    size="lg"
+                                    className="h-12 rounded-xl bg-primary px-8 font-semibold"
+                                    onClick={() => navigate('/dashboard')}
+                                >
+                                    Access live demo
+                                    <ArrowRight className="ml-2 h-5 w-5" />
+                                </Button>
+                                <Button size="lg" variant="outline" asChild className="h-12 rounded-xl border-2 border-slate-200 px-8 font-semibold">
+                                    <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer">
+                                        <Github className="mr-2 h-5 w-5" />
+                                        View GitHub repository
+                                    </a>
+                                </Button>
+                                <Button
+                                    size="lg"
+                                    variant="secondary"
+                                    className="h-12 rounded-xl px-8 font-semibold"
+                                    onClick={() => navigate('/login')}
+                                >
+                                    Operator login
+                                </Button>
+                            </div>
                         </div>
                     </ScrollReveal>
                 </section>
 
-                {/* ───── FOOTER ───────────────────────────────────────── */}
-                <footer className="bg-slate-900 text-slate-400 py-12 px-6">
-                    <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-8 items-center border-b border-slate-800 pb-8 mb-8">
-                        <div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <Droplets className="h-6 w-6 text-sky-400" />
-                                <span className="text-lg font-bold text-white tracking-tight">Hydro<span className="text-sky-400">Sentry</span></span>
+                <footer className="border-t border-slate-200/80 bg-slate-950 text-slate-400">
+                    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+                        <div className="flex flex-col gap-10 border-b border-slate-800 pb-10 md:flex-row md:items-start md:justify-between">
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <Droplets className="h-6 w-6 text-sky-400" strokeWidth={1.5} />
+                                    <span className="text-lg font-semibold text-white">
+                                        Hydro<span className="text-sky-400">Sentry</span>
+                                    </span>
+                                </div>
+                                <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-400">
+                                    Open-source edge early warning blueprint for the Lake Chad Basin — open hardware, open data, youth-maintained.
+                                </p>
                             </div>
-                            <p className="text-sm max-w-sm leading-relaxed">
-                                Decentralized early warning and crisis management system for the Lake Chad Basin.
+                            <div className="text-sm">
+                                <p className="font-medium text-slate-300">Initiative</p>
+                                <p className="mt-2">
+                                    <strong className="text-white">Orivon Edge</strong>
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex flex-col items-center justify-between gap-4 pt-8 text-xs text-slate-500 sm:flex-row">
+                            <p>© {new Date().getFullYear()} Orivon Edge. All rights reserved.</p>
+                            <p>
+                                Borno State, Nigeria · v1.0.0-MVP
                             </p>
-                        </div>
-                        <div className="md:text-right text-sm space-y-2">
-                            <p>Initiative by <strong className="text-white">Orivon Edge</strong></p>
-                        </div>
-                    </div>
-                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between text-xs text-slate-500">
-                        <p>© {new Date().getFullYear()} Orivon Edge. All rights reserved.</p>
-                        <div className="flex items-center gap-4 mt-4 md:mt-0">
-                            <span>Borno State, Nigeria</span>
-                            <span>•</span>
-                            <span>v1.0.0-MVP</span>
                         </div>
                     </div>
                 </footer>
