@@ -13,9 +13,9 @@ import {
     LayoutDashboard,
 } from 'lucide-react';
 
-/** Set `VITE_GITHUB_REPO_URL` in `.env` to your public repository. */
+/** Set `VITE_GITHUB_REPO_URL` in `.env` to override the public repository URL. */
 const GITHUB_REPO_URL =
-    import.meta.env.VITE_GITHUB_REPO_URL ?? 'https://github.com/orivon-edge/hydrosentry';
+    import.meta.env.VITE_GITHUB_REPO_URL ?? 'https://github.com/sagegottrill/hydrosentry';
 
 import { Button } from '@/components/ui/button';
 import { HydroSentryLogo } from '@/components/HydroSentryLogo';
