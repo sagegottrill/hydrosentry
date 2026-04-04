@@ -3,6 +3,7 @@
 #   VERCEL_TOKEN          — https://vercel.com/account/tokens
 #   VERCEL_ORG_ID         — from local .vercel/project.json "orgId", or Vercel project Settings → General
 #   VERCEL_PROJECT_ID     — from local .vercel/project.json "projectId", or same Settings page
+#   (projectId starts with prj_; orgId starts with team_ — paste each value into its own secret, no quotes.)
 
 name: Deploy to Vercel
 
