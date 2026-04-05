@@ -1,5 +1,6 @@
 import {
     createContext,
+    useCallback,
     useContext,
     useEffect,
     useMemo,
@@ -39,9 +40,19 @@ export interface AlertStats {
     activeAlerts: number;
 }
 
+export type FieldReportKind = 'nominal' | 'battery' | 'silt';
+
 interface AlertHistoryContextValue {
     alerts: AlertEvent[];
     stats: AlertStats;
+    /** Inserts a field-warden report at the top of the timeline (demo / command-center sync). */
+    recordFieldReport: (input: {
+        nodeId: string;
+        nodeName: string;
+        location: string;
+        publicCode?: string;
+        report: FieldReportKind;
+    }) => void;
 }
 
 const AlertHistoryContext = createContext<AlertHistoryContextValue | null>(null);
@@ -166,9 +177,66 @@ function buildAlertHistory(): AlertEvent[] {
     ];
 }
 
+function fieldReportToAlert(input: {
+    nodeId: string;
+    nodeName: string;
+    location: string;
+    publicCode?: string;
+    report: FieldReportKind;
+}): AlertEvent {
+    const sensorId = input.publicCode ?? input.nodeId.slice(0, 8).toUpperCase();
+    const base = {
+        id: `AH-FR-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        relativeTime: 'Just now',
+        sensorId,
+        sensorName: input.nodeName,
+        sirenActivated: false,
+        status: 'acknowledged' as const,
+    };
+
+    switch (input.report) {
+        case 'nominal':
+            return {
+                ...base,
+                type: 'anomaly',
+                severity: 'info',
+                message: `Data Scout — ${input.nodeName} (${input.location}): hardware check **nominal**. Field report synced to command center.`,
+            };
+        case 'battery':
+            return {
+                ...base,
+                type: 'low_battery',
+                severity: 'warning',
+                message: `Data Scout — ${input.nodeName}: **battery degraded / swollen** reported from the field. Maintenance queued for review.`,
+            };
+        case 'silt':
+            return {
+                ...base,
+                type: 'equipment_failure',
+                severity: 'warning',
+                message: `Data Scout — ${input.nodeName}: **sensor fouled (silt/mud)**. Cleaning or recalibration may be required.`,
+            };
+    }
+}
+
 export function AlertHistoryProvider({ children }: { children: ReactNode }) {
     const [alerts, setAlerts] = useState<AlertEvent[]>(buildAlertHistory);
     const injectRef = useRef(false);
+
+    const recordFieldReport = useCallback(
+        (input: {
+            nodeId: string;
+            nodeName: string;
+            location: string;
+            publicCode?: string;
+            report: FieldReportKind;
+        }) => {
+            const entry = fieldReportToAlert(input);
+            setAlerts((prev) => [entry, ...prev]);
+        },
+        [],
+    );
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -208,7 +276,10 @@ export function AlertHistoryProvider({ children }: { children: ReactNode }) {
         activeAlerts: alerts.filter((a) => a.status === 'active').length,
     }), [alerts]);
 
-    const value = useMemo(() => ({ alerts, stats }), [alerts, stats]);
+    const value = useMemo(
+        () => ({ alerts, stats, recordFieldReport }),
+        [alerts, stats, recordFieldReport],
+    );
 
     return (
         <AlertHistoryContext.Provider value={value}>
