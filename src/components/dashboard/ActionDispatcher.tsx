@@ -1,4 +1,4 @@
-import { AlertTriangle, Send, Wrench, Bell, Droplets, Battery, Radio } from 'lucide-react';
+import { AlertTriangle, Send, Wrench, Bell, Droplets, Battery, Radio, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { Alert } from '@/types/hydrosentry';
@@ -10,6 +10,11 @@ interface ActionDispatcherProps {
   className?: string;
 }
 
+/**
+ * Prioritized dispatch cards. Ops alert list is supplied by `useAlerts` on the dashboard:
+ * baseline mock rows plus Supabase Realtime INSERT prepends (and a one-shot hydrate for
+ * warden reports submitted while the dashboard was not mounted).
+ */
 export function ActionDispatcher({ alerts, onDispatch, className }: ActionDispatcherProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -83,14 +88,16 @@ export function ActionDispatcher({ alerts, onDispatch, className }: ActionDispat
             const tel = alert.telemetry;
             const hydroCrit = Boolean(tel && alert.id.includes('water'));
             const battCrit = tel && tel.node_status === 'low_battery';
+            const wardenFieldCritical =
+              alert.alertSource === 'field' && alert.priority === 'critical';
 
             return (
               <div
                 key={alert.id}
                 className={cn(
                   'group dashboard-card p-4 transition-colors duration-200 hover:border-muted-foreground/15',
-                  hydroCrit && 'border-destructive/35 bg-destructive/[0.03]',
-                  battCrit && !hydroCrit && 'border-amber-200/80 bg-amber-50/40',
+                  (hydroCrit || wardenFieldCritical) && 'border-destructive/35 bg-destructive/[0.03]',
+                  battCrit && !hydroCrit && !wardenFieldCritical && 'border-amber-200/80 bg-amber-50/40',
                 )}
               >
                 {/* Header */}
@@ -111,6 +118,12 @@ export function ActionDispatcher({ alerts, onDispatch, className }: ActionDispat
                         ESP32 uplink
                       </span>
                     )}
+                    {alert.alertSource === 'field' && (
+                      <span className="flex items-center gap-1 rounded border border-primary/20 bg-primary/5 px-2 py-0.5 text-[0.625rem] font-medium uppercase tracking-wide text-primary">
+                        <Smartphone className="h-3 w-3" />
+                        Warden report
+                      </span>
+                    )}
                   </div>
                   <span className="text-[10px] font-medium text-slate-400">Just now</span>
                 </div>
@@ -120,8 +133,21 @@ export function ActionDispatcher({ alerts, onDispatch, className }: ActionDispat
                   {alert.title}
                 </h4>
 
+                {alert.fieldNotes ? (
+                  <p
+                    className={cn(
+                      'mb-2 text-xs leading-relaxed',
+                      wardenFieldCritical
+                        ? 'font-semibold text-destructive'
+                        : 'font-medium text-slate-700',
+                    )}
+                  >
+                    {alert.fieldNotes}
+                  </p>
+                ) : null}
+
                 {/* Description */}
-                <p className="text-xs text-slate-600 mb-4 leading-relaxed">
+                <p className="mb-4 text-xs leading-relaxed text-slate-600">
                   {alert.description}
                 </p>
 

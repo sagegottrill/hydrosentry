@@ -104,6 +104,8 @@ export interface Alert {
   priority: AlertPriority;
   title: string;
   description: string;
+  /** Warden mobile notes; shown under the title in Action Dispatcher. */
+  fieldNotes?: string;
   location: string;
   recommendation: string;
   actionLabel: string;

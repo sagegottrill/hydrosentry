@@ -1,10 +1,20 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { MapPin, BatteryWarning, AlertTriangle, CheckCircle, Send } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  MapPin,
+  BatteryWarning,
+  AlertTriangle,
+  CheckCircle,
+  Send,
+  Loader2,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useSensorNetwork } from '@/hooks/useSensorNetwork';
 import { useAlertHistory, type FieldReportKind } from '@/hooks/useAlertHistory';
+import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
+import { insertWardenFieldReport } from '@/lib/wardenFieldReportDb';
+import type { Season } from '@/types/hydrosentry';
 
 type NodeOption = {
   id: string;
@@ -21,8 +31,11 @@ const DEMO_NODE_OPTIONS: NodeOption[] = [
 
 export default function WardenFieldReport() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { nodes } = useSensorNetwork();
   const { recordFieldReport } = useAlertHistory();
+
+  const fieldReportSeason: Season = searchParams.get('season') === 'dry' ? 'dry' : 'wet';
 
   const options = useMemo<NodeOption[]>(() => {
     if (nodes.length > 0) {
@@ -39,6 +52,7 @@ export default function WardenFieldReport() {
   const [selectedNodeId, setSelectedNodeId] = useState('');
   const [status, setStatus] = useState<FieldReportKind | null>(null);
   const [notes, setNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (options.length === 0) return;
@@ -46,9 +60,9 @@ export default function WardenFieldReport() {
     if (!valid) setSelectedNodeId(options[0].id);
   }, [options, selectedNodeId]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!status) return;
+    if (!status || isSubmitting) return;
     const selected = options.find((o) => o.id === selectedNodeId);
     if (!selected) return;
 
@@ -63,22 +77,46 @@ export default function WardenFieldReport() {
       notes: trimmedNotes || '(none)',
     });
 
-    recordFieldReport({
-      nodeId: selected.id,
-      nodeName: selected.name,
-      location: selected.location,
-      ...(selected.publicCode ? { publicCode: selected.publicCode } : {}),
-      report: status,
-    });
+    setIsSubmitting(true);
+    try {
+      if (isSupabaseConfigured && supabase) {
+        const result = await insertWardenFieldReport({
+          sensorNodeId: selected.id,
+          nodeLabel: selected.name,
+          nodeLocation: selected.location,
+          ...(selected.publicCode ? { publicCode: selected.publicCode } : {}),
+          status,
+          notesTrimmed: trimmedNotes,
+          season: fieldReportSeason,
+        });
 
-    toast.success('Successfully submitted', {
-      description: trimmedNotes
-        ? 'Field report and notes logged (demo). Open Alert History to review.'
-        : 'Field report synced to Alert History and the header bell.',
-    });
-    setStatus(null);
-    setNotes('');
-    navigate('/alerts');
+        if ('error' in result) {
+          toast.error('Could not sync report', { description: result.error });
+          return;
+        }
+      }
+
+      recordFieldReport({
+        nodeId: selected.id,
+        nodeName: selected.name,
+        location: selected.location,
+        ...(selected.publicCode ? { publicCode: selected.publicCode } : {}),
+        report: status,
+      });
+
+      toast.success('Successfully submitted', {
+        description: isSupabaseConfigured
+          ? 'Report saved; Dispatch queue will show it on the dashboard.'
+          : trimmedNotes
+            ? 'Field report and notes logged (offline). Open Alert History to review.'
+            : 'Field report synced to Alert History and the header bell.',
+      });
+      setStatus(null);
+      setNotes('');
+      navigate('/dashboard');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const cardBase =
@@ -127,11 +165,13 @@ export default function WardenFieldReport() {
               <button
                 type="button"
                 onClick={() => setStatus('nominal')}
+                disabled={isSubmitting}
                 className={cn(
                   cardBase,
                   status === 'nominal'
                     ? 'border-2 border-green-500 bg-green-50 shadow-sm'
                     : 'border border-slate-200/90 bg-white shadow-sm',
+                  isSubmitting && 'pointer-events-none opacity-60',
                 )}
               >
                 <CheckCircle
@@ -154,11 +194,13 @@ export default function WardenFieldReport() {
               <button
                 type="button"
                 onClick={() => setStatus('battery')}
+                disabled={isSubmitting}
                 className={cn(
                   cardBase,
                   status === 'battery'
                     ? 'border-2 border-amber-500 bg-amber-50 shadow-sm'
                     : 'border border-slate-200/90 bg-white shadow-sm',
+                  isSubmitting && 'pointer-events-none opacity-60',
                 )}
               >
                 <BatteryWarning
@@ -181,11 +223,13 @@ export default function WardenFieldReport() {
               <button
                 type="button"
                 onClick={() => setStatus('silt')}
+                disabled={isSubmitting}
                 className={cn(
                   cardBase,
                   status === 'silt'
                     ? 'border-2 border-red-500 bg-red-50 shadow-sm'
                     : 'border border-slate-200/90 bg-white shadow-sm',
+                  isSubmitting && 'pointer-events-none opacity-60',
                 )}
               >
                 <AlertTriangle
@@ -212,14 +256,15 @@ export default function WardenFieldReport() {
               id="warden-field-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              disabled={isSubmitting}
               placeholder="E.g., Solar panel is covered in dust, requires cleaning..."
-              className="w-full min-h-[120px] rounded-2xl bg-slate-50 border border-slate-200 p-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              className="w-full min-h-[120px] rounded-2xl border border-slate-200 bg-slate-50 p-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 disabled:opacity-60"
             />
           </div>
 
           <button
             type="submit"
-            disabled={!status}
+            disabled={!status || isSubmitting}
             className={cn(
               'flex h-16 min-h-[4rem] w-full items-center justify-center gap-2 rounded-2xl bg-primary text-lg font-bold text-primary-foreground shadow-md transition-all duration-200',
               'hover:opacity-95',
@@ -227,8 +272,12 @@ export default function WardenFieldReport() {
               'disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none disabled:active:scale-100',
             )}
           >
-            <Send size={20} strokeWidth={2.25} />
-            Submit Field Data
+            {isSubmitting ? (
+              <Loader2 className="h-6 w-6 shrink-0 animate-spin" aria-hidden />
+            ) : (
+              <Send size={20} strokeWidth={2.25} />
+            )}
+            {isSubmitting ? 'Submitting…' : 'Submit Field Data'}
           </button>
         </form>
       </div>

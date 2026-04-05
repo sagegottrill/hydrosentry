@@ -212,6 +212,9 @@ CREATE INDEX IF NOT EXISTS idx_alerts_priority ON public.alerts (priority);
 
 COMMENT ON COLUMN public.alerts.telemetry_snapshot IS 'Optional SensorTelemetrySnapshot JSON.';
 
+-- Optional warden mobile notes (Action Dispatcher shows under title).
+ALTER TABLE public.alerts ADD COLUMN IF NOT EXISTS field_notes text;
+
 -- -----------------------------------------------------------------------------
 -- updated_at trigger
 -- -----------------------------------------------------------------------------
@@ -353,6 +356,16 @@ DROP POLICY IF EXISTS alerts_select_authenticated ON public.alerts;
 CREATE POLICY alerts_select_authenticated
   ON public.alerts FOR SELECT TO authenticated USING (true);
 
+-- Warden mobile form + ops dashboards: INSERT field reports (anon SPA key).
+
+DROP POLICY IF EXISTS alerts_insert_anon ON public.alerts;
+CREATE POLICY alerts_insert_anon
+  ON public.alerts FOR INSERT TO anon WITH CHECK (true);
+
+DROP POLICY IF EXISTS alerts_insert_authenticated ON public.alerts;
+CREATE POLICY alerts_insert_authenticated
+  ON public.alerts FOR INSERT TO authenticated WITH CHECK (true);
+
 -- -----------------------------------------------------------------------------
 -- API privileges (PostgREST / Supabase client)
 -- -----------------------------------------------------------------------------
@@ -365,12 +378,13 @@ GRANT INSERT ON public.telemetry_readings TO anon, authenticated;
 GRANT SELECT ON public.risk_zones TO anon, authenticated;
 GRANT SELECT ON public.boreholes TO anon, authenticated;
 GRANT SELECT ON public.routes TO anon, authenticated;
-GRANT SELECT ON public.alerts TO anon, authenticated;
+GRANT SELECT, INSERT ON public.alerts TO anon, authenticated;
 
 -- -----------------------------------------------------------------------------
 -- Realtime: notify subscribed clients when gateways INSERT telemetry.
 -- Supabase Dashboard: Database → Publications → supabase_realtime → add
 --   public.telemetry_readings (or rely on the block below).
+-- Also: public.alerts for warden field reports → Action Dispatcher.
 -- -----------------------------------------------------------------------------
 DO $realtime$
 BEGIN
@@ -382,6 +396,15 @@ BEGIN
       AND tablename = 'telemetry_readings'
   ) THEN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.telemetry_readings;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'alerts'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.alerts;
   END IF;
 END $realtime$;
 

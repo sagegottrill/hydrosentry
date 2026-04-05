@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useOpsAlertsRealtimePrepend } from '@/hooks/useOpsAlertsRealtime';
 import type { 
   RiskZone, 
   Borehole, 
@@ -94,7 +95,8 @@ const mockBoreholes: Borehole[] = [
   }
 ];
 
-const mockAlerts: Alert[] = [
+/** Baseline Action Dispatcher alerts — kept as default React state; live rows prepend via Realtime. */
+export const DISPATCH_MOCK_ALERTS_INITIAL: Alert[] = [
   {
     id: 'alert-001',
     priority: 'critical',
@@ -135,6 +137,8 @@ const mockAlerts: Alert[] = [
     createdAt: new Date().toISOString()
   }
 ];
+
+const mockAlerts = DISPATCH_MOCK_ALERTS_INITIAL;
 
 const mockRoutes: Route[] = [
   {
@@ -276,8 +280,10 @@ export function useHydroData() {
 }
 
 export function useAlerts() {
-  const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
-  
+  const [alerts, setAlerts] = useState<Alert[]>(() => [...DISPATCH_MOCK_ALERTS_INITIAL]);
+
+  useOpsAlertsRealtimePrepend(setAlerts);
+
   const dispatchAction = (alertId: string) => {
     // Future: This will POST to Supabase
     const workOrderNumber = Math.floor(400 + Math.random() * 100);
