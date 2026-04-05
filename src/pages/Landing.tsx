@@ -11,6 +11,7 @@ import {
     MapPin,
     Github,
     LayoutDashboard,
+    Smartphone,
 } from 'lucide-react';
 
 /** Set `VITE_GITHUB_REPO_URL` in `.env` to override the public repository URL. */
@@ -158,6 +159,17 @@ export default function Landing() {
                             ))}
                         </div>
                         <div className="flex items-center gap-2 sm:gap-3">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-9 border-slate-200 px-2.5 text-slate-700 sm:px-4"
+                                onClick={() => navigate('/field-report')}
+                            >
+                                <Smartphone className="mr-1.5 h-4 w-4 shrink-0 sm:mr-2" strokeWidth={1.75} />
+                                <span className="max-w-[5.5rem] truncate text-xs font-semibold sm:max-w-none sm:text-sm">
+                                    Warden mode
+                                </span>
+                            </Button>
                             <Button
                                 variant="outline"
                                 size="sm"

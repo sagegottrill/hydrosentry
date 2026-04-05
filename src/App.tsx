@@ -13,6 +13,7 @@ import SensorWardens from "./pages/SensorWardens";
 import Dispatcher from "./pages/Dispatcher";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import WardenFieldReport from "./components/WardenFieldReport";
 import { AlertHistoryProvider } from "./hooks/useAlertHistory";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/field-report" element={<WardenFieldReport />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/sensors" element={<SensorNetwork />} />
             <Route path="/analytics" element={<Analytics />} />

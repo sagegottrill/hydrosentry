@@ -10,7 +10,8 @@ import {
   Radio,
   BarChart3,
   Bell,
-  Users
+  Users,
+  Smartphone,
 } from 'lucide-react';
 import { HydroSentryLogo } from '@/components/HydroSentryLogo';
 import { Button } from '@/components/ui/button';
@@ -70,6 +71,13 @@ const navItems = [
     icon: Users,
     path: '/wardens',
     description: 'Youth employment program'
+  },
+  {
+    id: 'field-report',
+    label: 'Warden Mode',
+    icon: Smartphone,
+    path: '/field-report',
+    description: 'Mobile field hardware reporting'
   },
   {
     id: 'dispatcher',
