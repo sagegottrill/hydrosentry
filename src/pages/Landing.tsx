@@ -311,9 +311,9 @@ export default function Landing() {
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             {[
                                 {
-                                    value: '10',
-                                    label: 'Active pilot nodes',
-                                    sub: 'Current deployment scale (pilot)',
+                                    value: '10 Simulated Nodes',
+                                    label: 'Phase 1 Network Topology',
+                                    sub: '',
                                     icon: Radio,
                                 },
                                 {
@@ -334,9 +334,13 @@ export default function Landing() {
                                     className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
                                 >
                                     <s.icon className="mb-4 h-7 w-7 text-primary" strokeWidth={1.5} />
-                                    <p className="text-3xl font-semibold tabular-nums tracking-tight text-slate-900">{s.value}</p>
+                                    <p className="text-2xl font-semibold leading-tight tracking-tight text-slate-900 sm:text-3xl sm:tabular-nums">
+                                        {s.value}
+                                    </p>
                                     <p className="mt-2 text-sm font-semibold text-slate-800">{s.label}</p>
-                                    <p className="mt-1.5 text-xs leading-relaxed text-slate-500">{s.sub}</p>
+                                    {s.sub ? (
+                                        <p className="mt-1.5 text-xs leading-relaxed text-slate-500">{s.sub}</p>
+                                    ) : null}
                                 </div>
                             ))}
                         </div>
