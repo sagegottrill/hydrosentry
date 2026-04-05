@@ -123,7 +123,7 @@ export default function Landing() {
 
     return (
         <ReactLenis root>
-            <div className="min-h-screen overflow-x-clip bg-[#f8fafc] font-sans text-slate-900 antialiased selection:bg-sky-100">
+            <div className="min-h-dvh w-full max-w-[100vw] overflow-x-hidden bg-[#f8fafc] font-sans text-slate-900 antialiased selection:bg-sky-100">
                 <div
                     className="fixed left-0 top-0 z-[60] h-0.5 bg-primary transition-[width] duration-150 ease-out"
                     style={{ width: `${scrollProgress}%` }}
@@ -308,7 +308,7 @@ export default function Landing() {
 
                 <ScrollReveal>
                     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
-                        <div className="grid gap-4 sm:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             {[
                                 {
                                     value: '10',
@@ -362,7 +362,7 @@ export default function Landing() {
                         </ScrollReveal>
 
                         <ScrollReveal className="stagger-children">
-                            <div className="grid gap-5 md:grid-cols-3">
+                            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
                                 {[
                                     {
                                         stat: '400K+',
@@ -385,7 +385,7 @@ export default function Landing() {
                                 ].map((c, i) => (
                                     <div
                                         key={i}
-                                        className={`rounded-2xl border border-slate-200/90 border-t-4 p-8 shadow-sm ${c.accent} transition hover:shadow-md`}
+                                        className={`rounded-2xl border border-slate-200/90 border-t-4 p-5 shadow-sm md:p-8 ${c.accent} transition hover:shadow-md`}
                                     >
                                         <p className="text-3xl font-semibold tabular-nums tracking-tight text-slate-900">{c.stat}</p>
                                         <p className="mt-3 text-base font-semibold text-slate-900">{c.label}</p>
@@ -428,7 +428,7 @@ export default function Landing() {
                         </ScrollReveal>
 
                         <ScrollReveal className="stagger-children">
-                            <div className="grid gap-6 md:grid-cols-3">
+                            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                                 {[
                                     {
                                         step: '01',
@@ -451,7 +451,7 @@ export default function Landing() {
                                 ].map((item, i) => (
                                     <div
                                         key={i}
-                                        className="group relative overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-50/50 p-8 transition hover:border-primary/25 hover:bg-white hover:shadow-lg"
+                                        className="group relative overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-50/50 p-5 transition hover:border-primary/25 hover:bg-white hover:shadow-lg md:p-8"
                                     >
                                         <span className="absolute right-6 top-6 text-5xl font-semibold text-slate-200 transition group-hover:text-primary/15">
                                             {item.step}

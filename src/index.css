@@ -5,6 +5,16 @@
 /* HydroSentry Design System - UN Humanitarian Tech */
 
 @layer base {
+  html {
+    @apply overflow-x-hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body,
+  #root {
+    @apply w-full max-w-[100vw] overflow-x-hidden;
+  }
+
   :root {
     /* Canvas: slightly cooler/lighter than cards so white panels “float” (airy dashboards) */
     --background: 220 16% 96%;
@@ -166,12 +176,12 @@
    */
   /** Subpages: same top rhythm as overview (dashboard-overview-root), not extra vertical padding */
   .dashboard-shell {
-    @apply mx-auto min-h-0 w-full max-w-[1920px] flex-1 space-y-3 overflow-y-auto overscroll-y-contain px-4 py-3 sm:space-y-4 sm:px-5 sm:py-3;
+    @apply mx-auto min-h-0 w-full max-w-[1920px] flex-1 space-y-3 overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 py-3 sm:space-y-4 sm:px-5 sm:py-4 md:px-6 md:py-4;
   }
 
   /** KPI / summary tiles — one horizontal band: label + value, institutional density */
   .stat-grid {
-    @apply grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3;
+    @apply grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 md:grid-cols-3;
   }
 
   .stat-grid-5 {
@@ -205,7 +215,7 @@
 
   /** Single-screen overview: no outer scroll; children manage overflow */
   .dashboard-overview-root {
-    @apply flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden px-4 py-3 sm:px-5 sm:py-3;
+    @apply flex min-h-0 w-full min-w-0 max-w-full flex-1 flex-col overflow-x-hidden overflow-hidden px-4 py-3 sm:px-5 sm:py-4 md:px-6;
   }
 
   /** White panel: thin border, almost no shadow */

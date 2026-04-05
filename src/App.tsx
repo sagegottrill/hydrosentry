@@ -25,6 +25,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AlertHistoryProvider>
+          <div className="min-h-dvh w-full max-w-[100vw] overflow-x-hidden antialiased">
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </div>
         </AlertHistoryProvider>
       </BrowserRouter>
     </TooltipProvider>

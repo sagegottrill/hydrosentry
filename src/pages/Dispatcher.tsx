@@ -214,7 +214,7 @@ export default function Dispatcher() {
               </DialogHeader>
 
               <div className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label>Priority *</Label>
                     <Select
@@ -486,7 +486,7 @@ export default function Dispatcher() {
                                       <p className="mb-1 text-xs font-medium text-primary">Description</p>
                                       <p className="rounded-lg border border-border bg-muted/25 p-4 text-sm leading-relaxed text-foreground">{order.description}</p>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                       <div className="rounded-lg border border-border bg-muted/20 p-3">
                                         <p className="mb-0.5 text-xs text-muted-foreground">Est. cost</p>
                                         <p className="text-base font-bold tabular-nums text-foreground">{formatCurrency(order.estimatedCost)}</p>

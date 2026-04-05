@@ -253,7 +253,7 @@ function SensorCard({ node }: { node: SensorNode }) {
                     <span className={cn('text-sm font-semibold', tinyml.className)}>{tinyml.label}</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                             <Radio className="h-4 w-4 shrink-0 text-primary" strokeWidth={1.75} />

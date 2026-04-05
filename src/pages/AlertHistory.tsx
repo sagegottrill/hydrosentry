@@ -96,7 +96,7 @@ function AlertCard({ alert }: { alert: AlertEvent }) {
                                 <MessageSquare className="h-4 w-4 text-primary" />
                                 <span className="text-sm font-semibold text-foreground">SMS delivery</span>
                             </div>
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                 <div className="rounded-lg border border-border bg-card py-3 text-center">
                                     <p className="text-xl font-bold tabular-nums text-foreground">{alert.smsDelivery.sent.toLocaleString()}</p>
                                     <p className="mt-1 text-xs text-muted-foreground">Sent</p>

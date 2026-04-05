@@ -23,7 +23,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-secondary/30 flex items-center justify-center p-4">
+    <div className="flex min-h-dvh w-full max-w-[100vw] items-center justify-center overflow-x-hidden bg-secondary/30 p-4 md:p-6">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
 
       <Card className="w-full max-w-md relative z-10 shadow-xl border-border/50">
@@ -55,7 +55,7 @@ export default function Login() {
                   placeholder="guest-operator@hydrosentry.org"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
+                  className="h-11 min-h-11 pl-10 text-base sm:h-10 sm:min-h-0 sm:text-sm"
                 />
               </div>
             </div>
@@ -72,14 +72,14 @@ export default function Login() {
                   placeholder="••••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
+                  className="h-11 min-h-11 pl-10 text-base sm:h-10 sm:min-h-0 sm:text-sm"
                 />
               </div>
             </div>
 
             <Button
               type="submit"
-              className="w-full mt-6 bg-primary hover:bg-primary/90"
+              className="mt-6 min-h-12 w-full bg-primary hover:bg-primary/90"
               disabled={isLoading}
             >
               {isLoading ? (

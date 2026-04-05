@@ -108,7 +108,7 @@ export default function Dashboard() {
           <PageHeader variant="compact" icon={LayoutDashboard} title="Operations overview" />
 
           {/* KPI row: expands with sidebar width; equal-height cells */}
-          <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">
+          <div className="grid shrink-0 grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-5">
             <div className="min-h-0 min-w-0">
               <MetricCard
                 title="Est. flood risk value"
@@ -151,7 +151,7 @@ export default function Dashboard() {
                 }
               />
             </div>
-            <div className="min-h-0 min-w-0 col-span-2 lg:col-span-1">
+            <div className="min-h-0 min-w-0 sm:col-span-2 lg:col-span-1">
               <MetricCard
                 title={`${edgeHardwareSpec.mcuFamily} · LiFePO₄`}
                 value={`${sensorStats.avgBatteryVoltage.toFixed(2)} V`}
