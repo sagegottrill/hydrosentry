@@ -1,11 +1,10 @@
 import "@supabase/functions-js/edge-runtime.d.ts"
 
-/** cm above which we send SMS (override with secret FLOOD_THRESHOLD_CM). */
-const DEFAULT_FLOOD_THRESHOLD_CM = 100
+const FLOOD_THRESHOLD_CM = 100
+const MOCK_TERMII_API_KEY = "TERMII_TEST_KEY_123"
 
 Deno.serve(async (req) => {
   try {
-    // Database webhook payload: { type, table, schema, record, old_record }
     const payload = await req.json()
     const record = payload.record as Record<string, unknown> | null | undefined
 
@@ -17,40 +16,66 @@ Deno.serve(async (req) => {
     }
 
     const water = Number(record.water_level_cm)
-    const threshold = Number(
-      Deno.env.get("FLOOD_THRESHOLD_CM") ?? DEFAULT_FLOOD_THRESHOLD_CM,
-    )
-
-    if (!Number.isFinite(water) || water < threshold) {
+    if (!Number.isFinite(water) || water < FLOOD_THRESHOLD_CM) {
       return new Response("Water level normal. No alert required.", {
         status: 200,
       })
     }
 
     const termiiApiKey = Deno.env.get("TERMII_API_KEY")
-    const to = Deno.env.get("TERMII_ALERT_PHONE")
-    const from = Deno.env.get("TERMII_SENDER_ID") ?? "HydroSentry"
+    if (!termiiApiKey) {
+      return new Response(JSON.stringify({ error: "Missing TERMII_API_KEY secret." }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
 
-    if (!termiiApiKey || !to) {
+    const from = Deno.env.get("TERMII_SENDER_ID") ?? "HydroSentry"
+    const nodeId =
+      typeof record.sensor_node_id === "string" ? record.sensor_node_id : "unknown"
+
+    const smsBody =
+      `CRITICAL ALERT: Flood threshold exceeded at sensor node ${nodeId}. Current depth: ${water}cm. Dispatch wardens to safe corridors immediately.`
+
+    if (termiiApiKey === MOCK_TERMII_API_KEY) {
+      const mockTo = Deno.env.get("TERMII_ALERT_PHONE") ?? "MOCK_DESTINATION"
+      const simulatedPayload = {
+        to: mockTo,
+        from,
+        sms: smsBody,
+        type: "plain",
+        channel: "dnd",
+      }
+      console.log(
+        "[send-flood-alert] MOCK MODE — simulated Termii SMS payload (no HTTP):",
+        JSON.stringify(simulatedPayload),
+      )
+      return new Response(
+        JSON.stringify({
+          success: true,
+          mock: true,
+          message: "SMS simulated; Termii API not called.",
+          payload: simulatedPayload,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      )
+    }
+
+    const to = Deno.env.get("TERMII_ALERT_PHONE")
+    if (!to) {
       return new Response(
         JSON.stringify({
           error:
-            "Configure secrets TERMII_API_KEY and TERMII_ALERT_PHONE (E.164-style MSISDN, no +).",
+            "Configure TERMII_ALERT_PHONE for production sends (E.164-style MSISDN, no +).",
         }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       )
     }
 
-    const nodeId =
-      typeof record.sensor_node_id === "string"
-        ? record.sensor_node_id
-        : "unknown"
-
     const smsData = {
       to,
       from,
-      sms:
-        `CRITICAL ALERT: Flood threshold exceeded at sensor node ${nodeId}. Current depth: ${water}cm. Dispatch wardens to safe corridors immediately.`,
+      sms: smsBody,
       type: "plain",
       channel: "dnd",
       api_key: termiiApiKey,
