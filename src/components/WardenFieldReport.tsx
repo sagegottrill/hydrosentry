@@ -38,6 +38,7 @@ export default function WardenFieldReport() {
 
   const [selectedNodeId, setSelectedNodeId] = useState('');
   const [status, setStatus] = useState<FieldReportKind | null>(null);
+  const [notes, setNotes] = useState('');
 
   useEffect(() => {
     if (options.length === 0) return;
@@ -51,6 +52,17 @@ export default function WardenFieldReport() {
     const selected = options.find((o) => o.id === selectedNodeId);
     if (!selected) return;
 
+    const trimmedNotes = notes.trim();
+
+    console.log('[WardenFieldReport] submitted', {
+      nodeId: selected.id,
+      nodeName: selected.name,
+      location: selected.location,
+      publicCode: selected.publicCode,
+      report: status,
+      notes: trimmedNotes || '(none)',
+    });
+
     recordFieldReport({
       nodeId: selected.id,
       nodeName: selected.name,
@@ -59,10 +71,13 @@ export default function WardenFieldReport() {
       report: status,
     });
 
-    toast.success('Field report synced', {
-      description: 'Your entry appears in Alert History and the header bell.',
+    toast.success('Successfully submitted', {
+      description: trimmedNotes
+        ? 'Field report and notes logged (demo). Open Alert History to review.'
+        : 'Field report synced to Alert History and the header bell.',
     });
     setStatus(null);
+    setNotes('');
     navigate('/alerts');
   };
 
@@ -187,6 +202,19 @@ export default function WardenFieldReport() {
                 </span>
               </button>
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="warden-field-notes" className="mb-2 block text-sm font-semibold text-slate-700">
+              Field Notes (Optional)
+            </label>
+            <textarea
+              id="warden-field-notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="E.g., Solar panel is covered in dust, requires cleaning..."
+              className="w-full min-h-[120px] rounded-2xl bg-slate-50 border border-slate-200 p-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            />
           </div>
 
           <button
