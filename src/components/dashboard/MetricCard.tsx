@@ -75,7 +75,9 @@ export function MetricCard({
     >
       <div className="flex h-full flex-1 flex-col p-4">
         <div className="mb-3 flex items-start justify-between gap-2">
-          <p className="text-xs font-medium leading-snug text-muted-foreground">{title}</p>
+          <p className="min-w-0 flex-1 text-xs font-medium leading-snug text-muted-foreground line-clamp-2">
+            {title}
+          </p>
           <div
             className={cn(
               'flex h-7 w-7 shrink-0 items-center justify-center rounded-md',
@@ -88,7 +90,7 @@ export function MetricCard({
 
         <div className="mt-auto flex flex-1 items-end justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-xl font-bold leading-none tracking-tight text-foreground tabular-nums sm:text-2xl">
+            <p className="break-words text-xl font-bold leading-tight tracking-tight text-foreground tabular-nums sm:text-2xl">
               {value}
             </p>
 
@@ -115,7 +117,7 @@ export function MetricCard({
           </div>
 
           {sparklineData ? (
-            <div className="h-11 w-20 shrink-0 opacity-75 transition-opacity duration-200 group-hover:opacity-100">
+            <div className="hidden h-11 w-20 shrink-0 opacity-75 transition-opacity duration-200 group-hover:opacity-100 min-[380px]:block sm:w-20">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={sparklineData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
                   <defs>

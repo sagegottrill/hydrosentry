@@ -104,7 +104,7 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="dashboard-overview-root">
-        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden max-md:min-h-min max-md:flex-none max-md:overflow-visible">
           <PageHeader variant="compact" icon={LayoutDashboard} title="Operations overview" />
 
           {/* KPI row: expands with sidebar width; equal-height cells */}
@@ -165,8 +165,8 @@ export default function Dashboard() {
           </div>
 
           {/* Map + dispatch: share remaining height; each scrolls internally */}
-          <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-hidden lg:grid-cols-[minmax(0,1fr)_min(18rem,100%)] xl:grid-cols-[minmax(0,1fr)_22rem]">
-            <div className="surface-card flex min-h-0 min-w-0 flex-col overflow-hidden p-3 sm:p-4">
+          <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-hidden max-md:min-h-min max-md:flex-none max-md:overflow-visible lg:grid-cols-[minmax(0,1fr)_min(18rem,100%)] xl:grid-cols-[minmax(0,1fr)_22rem]">
+            <div className="surface-card flex min-h-[min(52svh,22rem)] min-w-0 flex-col overflow-hidden p-3 sm:min-h-[16rem] sm:p-4 md:min-h-0 md:flex-1">
               <div className="mb-3 flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <h2 className="text-sm font-semibold tracking-tight text-foreground">Situational map</h2>
@@ -186,7 +186,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="flex min-h-[14rem] max-h-[42vh] min-w-0 flex-col overflow-hidden lg:max-h-none lg:h-full">
+            <div className="flex min-h-[14rem] min-w-0 flex-col overflow-hidden max-md:max-h-none lg:h-full lg:max-h-none">
               <ActionDispatcher alerts={seasonAlerts} onDispatch={handleDispatch} className="min-h-0 flex-1" />
             </div>
           </div>

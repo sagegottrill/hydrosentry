@@ -36,7 +36,7 @@ export function PageHeader({
             {title}
           </h1>
         </div>
-        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+        <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end sm:gap-3">
           {description ? (
             <p className="line-clamp-2 text-[0.8125rem] leading-snug text-muted-foreground sm:line-clamp-1 sm:max-w-xl sm:text-right">
               {description}

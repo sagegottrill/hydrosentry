@@ -259,7 +259,7 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch, se
       <div ref={mapContainerRef} className="h-full w-full min-h-[12rem]" />
 
       {/* Map Legend */}
-      <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-sm border border-slate-200 p-4 z-[1000] min-w-[180px]">
+      <div className="absolute bottom-2 left-2 z-[1000] max-w-[min(100%,calc(100vw-5rem))] rounded-lg border border-slate-200 bg-white/95 p-3 shadow-sm backdrop-blur-sm sm:bottom-4 sm:left-4 sm:max-w-none sm:bg-white sm:p-4 sm:backdrop-blur-none min-w-0 sm:min-w-[180px]">
         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Map Legend</p>
         {season === 'wet' ? (
           <div className="space-y-2.5">

@@ -102,8 +102,21 @@ function HeroVisual() {
     );
 }
 
+function useLenisOnDesktop() {
+    const [enabled, setEnabled] = useState(false);
+    useEffect(() => {
+        const mq = window.matchMedia('(min-width: 768px)');
+        const apply = () => setEnabled(mq.matches);
+        apply();
+        mq.addEventListener('change', apply);
+        return () => mq.removeEventListener('change', apply);
+    }, []);
+    return enabled;
+}
+
 export default function Landing() {
     const navigate = useNavigate();
+    const lenisDesktop = useLenisOnDesktop();
     const [scrollProgress, setScrollProgress] = useState(0);
 
     const heroRef = useRef<HTMLElement>(null);
@@ -121,8 +134,7 @@ export default function Landing() {
 
     const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
-    return (
-        <ReactLenis root>
+    const shell = (
             <div className="min-h-dvh w-full max-w-[100vw] overflow-x-hidden bg-[#f8fafc] font-sans text-slate-900 antialiased selection:bg-sky-100">
                 <div
                     className="fixed left-0 top-0 z-[60] h-0.5 bg-primary transition-[width] duration-150 ease-out"
@@ -130,8 +142,8 @@ export default function Landing() {
                 />
 
                 <div className="border-b border-slate-200/80 bg-white">
-                    <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 sm:px-6">
-                        <p className="text-[11px] font-medium tracking-wide text-slate-500">
+                    <div className="mx-auto flex h-9 max-w-7xl items-center justify-end px-3 sm:justify-between sm:px-6">
+                        <p className="hidden min-w-0 flex-1 truncate text-[11px] font-medium tracking-wide text-slate-500 sm:block">
                             Open-source edge infrastructure · Lake Chad Basin
                         </p>
                         <TopBarClock />
@@ -139,8 +151,10 @@ export default function Landing() {
                 </div>
 
                 <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
-                    <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-                        <HydroSentryLogo size="small" />
+                    <div className="mx-auto flex min-h-14 max-w-7xl flex-wrap items-center justify-between gap-x-2 gap-y-2 px-3 py-2 sm:h-16 sm:flex-nowrap sm:gap-4 sm:px-6 sm:py-0">
+                        <div className="min-w-0 shrink-0">
+                            <HydroSentryLogo size="small" />
+                        </div>
                         <div className="hidden items-center gap-8 md:flex">
                             {[
                                 ['Challenge', 'crisis'],
@@ -158,17 +172,15 @@ export default function Landing() {
                                 </button>
                             ))}
                         </div>
-                        <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="flex min-w-0 shrink-0 flex-wrap items-center justify-end gap-1.5 sm:gap-3">
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-9 border-slate-200 px-2.5 text-slate-700 sm:px-4"
+                                className="h-9 border-slate-200 px-2 text-slate-700 sm:px-4"
                                 onClick={() => navigate('/field-report')}
                             >
-                                <Smartphone className="mr-1.5 h-4 w-4 shrink-0 sm:mr-2" strokeWidth={1.75} />
-                                <span className="max-w-[5.5rem] truncate text-xs font-semibold sm:max-w-none sm:text-sm">
-                                    Warden mode
-                                </span>
+                                <Smartphone className="mr-1 h-4 w-4 shrink-0 sm:mr-2" strokeWidth={1.75} />
+                                <span className="text-xs font-semibold sm:text-sm">Warden</span>
                             </Button>
                             <Button
                                 variant="outline"
@@ -176,10 +188,15 @@ export default function Landing() {
                                 className="hidden h-9 border-slate-200 text-slate-700 sm:inline-flex"
                                 onClick={() => navigate('/dashboard')}
                             >
-                                Live demo
+                                Demo
                             </Button>
-                            <Button size="sm" className="h-9 bg-primary px-4 font-semibold hover:bg-primary/90" onClick={() => navigate('/login')}>
-                                Operator login
+                            <Button
+                                size="sm"
+                                className="h-9 shrink-0 bg-primary px-3 font-semibold hover:bg-primary/90 sm:px-4"
+                                onClick={() => navigate('/login')}
+                            >
+                                <span className="sm:hidden">Login</span>
+                                <span className="hidden sm:inline">Operator login</span>
                             </Button>
                         </div>
                     </div>
@@ -193,19 +210,19 @@ export default function Landing() {
                         style={{ y: bgY }}
                         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(14,165,233,0.12),transparent)]"
                     />
-                    <div className="relative mx-auto grid max-w-7xl gap-12 px-4 pb-16 pt-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:pb-24 lg:pt-12">
+                    <div className="relative mx-auto grid max-w-7xl gap-10 px-3 pb-12 pt-10 sm:gap-12 sm:px-6 sm:pb-16 sm:pt-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:pb-24 lg:pt-12">
                         <div>
                             <ScrollReveal animation="blur-in">
-                                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-sky-200/80 bg-sky-50/90 px-3.5 py-1.5 text-sky-900 shadow-sm">
-                                    <Shield className="h-3.5 w-3.5 text-primary" strokeWidth={1.75} />
-                                    <span className="text-[11px] font-semibold uppercase tracking-[0.14em]">
+                                <div className="mb-6 inline-flex max-w-full items-center gap-2 rounded-full border border-sky-200/80 bg-sky-50/90 px-3 py-1.5 text-sky-900 shadow-sm sm:px-3.5">
+                                    <Shield className="h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={1.75} />
+                                    <span className="text-[10px] font-semibold uppercase leading-snug tracking-[0.12em] sm:text-[11px] sm:tracking-[0.14em]">
                                         Open infrastructure · Climate, peace & security
                                     </span>
                                 </div>
                             </ScrollReveal>
 
                             <ScrollReveal animation="fade-up" delay={0.08}>
-                                <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl lg:text-[3.25rem] lg:leading-[1.06]">
+                                <h1 className="break-words text-4xl font-semibold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl lg:text-[3.25rem] lg:leading-[1.06]">
                                     Open-Source Edge Infrastructure for{' '}
                                     <span className="text-primary">Climate Resilience</span>
                                 </h1>
@@ -244,7 +261,7 @@ export default function Landing() {
                     </div>
                 </section>
 
-                <div className="relative z-10 -mt-6 px-4 sm:px-6">
+                <div className="relative z-10 -mt-6 px-3 sm:px-6">
                     <div className="mx-auto grid max-w-7xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         <button
                             type="button"
@@ -609,6 +626,7 @@ export default function Landing() {
                     </div>
                 </footer>
             </div>
-        </ReactLenis>
     );
+
+    return lenisDesktop ? <ReactLenis root>{shell}</ReactLenis> : shell;
 }

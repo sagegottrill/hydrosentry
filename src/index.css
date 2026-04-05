@@ -176,7 +176,7 @@
    */
   /** Subpages: same top rhythm as overview (dashboard-overview-root), not extra vertical padding */
   .dashboard-shell {
-    @apply mx-auto min-h-0 w-full max-w-[1920px] flex-1 space-y-3 overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 py-3 sm:space-y-4 sm:px-5 sm:py-4 md:px-6 md:py-4;
+    @apply mx-auto min-h-0 w-full max-w-[1920px] flex-1 space-y-3 overflow-x-hidden overflow-y-auto overscroll-y-contain px-3 py-3 sm:space-y-4 sm:px-5 sm:py-4 md:px-6 md:py-4;
   }
 
   /** KPI / summary tiles — one horizontal band: label + value, institutional density */
@@ -213,9 +213,14 @@
     @apply panel-scroll max-h-[min(70vh,36rem)] overflow-auto sm:max-h-[min(75vh,40rem)];
   }
 
-  /** Single-screen overview: no outer scroll; children manage overflow */
+  /**
+   * Overview: on md+ lock to viewport (map + dispatch scroll inside).
+   * On small screens let main scroll so KPIs, map, and dispatch are never clipped.
+   */
   .dashboard-overview-root {
-    @apply flex min-h-0 w-full min-w-0 max-w-full flex-1 flex-col overflow-x-hidden overflow-hidden px-4 py-3 sm:px-5 sm:py-4 md:px-6;
+    @apply flex w-full min-w-0 max-w-full flex-col overflow-x-hidden px-3 py-3 sm:px-5 sm:py-4 md:px-6;
+    @apply max-md:min-h-min max-md:flex-none max-md:overflow-y-visible;
+    @apply md:min-h-0 md:flex-1 md:overflow-hidden;
   }
 
   /** White panel: thin border, almost no shadow */
