@@ -14,6 +14,10 @@ import { useSensorNetwork } from '@/hooks/useSensorNetwork';
 import { useAlertHistory, type FieldReportKind } from '@/hooks/useAlertHistory';
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
 import { insertWardenFieldReport } from '@/lib/wardenFieldReportDb';
+import {
+  buildWardenCriticalSmsMessage,
+  requestWardenCriticalSms,
+} from '@/lib/sendWardenCriticalSms';
 import type { Season } from '@/types/hydrosentry';
 
 type NodeOption = {
@@ -104,12 +108,33 @@ export default function WardenFieldReport() {
         report: status,
       });
 
+      const smsMessage = buildWardenCriticalSmsMessage({
+        status,
+        nodeLabel: selected.name,
+        nodeLocation: selected.location,
+        ...(selected.publicCode ? { publicCode: selected.publicCode } : {}),
+        notes: trimmedNotes,
+      });
+
+      let criticalSmsOk = false;
+      if (smsMessage) {
+        try {
+          await requestWardenCriticalSms(smsMessage);
+          criticalSmsOk = true;
+        } catch (smsErr) {
+          const msg = smsErr instanceof Error ? smsErr.message : 'SMS failed';
+          toast.warning('Report saved; SMS not sent', { description: msg });
+        }
+      }
+
+      const baseDescription = isSupabaseConfigured
+        ? 'Report saved; Dispatch queue will show it on the dashboard.'
+        : trimmedNotes
+          ? 'Field report and notes logged (offline). Open Alert History to review.'
+          : 'Field report synced to Alert History and the header bell.';
+
       toast.success('Successfully submitted', {
-        description: isSupabaseConfigured
-          ? 'Report saved; Dispatch queue will show it on the dashboard.'
-          : trimmedNotes
-            ? 'Field report and notes logged (offline). Open Alert History to review.'
-            : 'Field report synced to Alert History and the header bell.',
+        description: smsMessage && criticalSmsOk ? `${baseDescription} Critical SMS sent via Termii.` : baseDescription,
       });
       setStatus(null);
       setNotes('');
