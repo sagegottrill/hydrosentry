@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "supabase:apply-flood-webhook": "node scripts/apply-telemetry-flood-webhook.mjs",
-    "supabase:test-flood-alert": "npx supabase db query --linked -f scripts/sql/test-flood-alert-insert.sql"
+    "supabase:test-flood-alert": "npx supabase db query --linked -f scripts/sql/test-flood-alert-insert.sql",
+    "supabase:e2e-flood": "node scripts/e2e-flood-end-to-end.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

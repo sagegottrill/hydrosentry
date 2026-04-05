@@ -46,12 +46,14 @@ Deno.serve(async (req) => {
         type: "plain",
         channel: "dnd",
       }
+      const banner = "🛠️ MOCK MODE ACTIVE"
       console.log(
-        "[send-flood-alert] MOCK MODE — simulated Termii SMS payload (no HTTP):",
+        `[send-flood-alert] ${banner} — simulated Termii SMS payload (no HTTP):`,
         JSON.stringify(simulatedPayload),
       )
       return new Response(
         JSON.stringify({
+          status: banner,
           success: true,
           mock: true,
           message: "SMS simulated; Termii API not called.",
