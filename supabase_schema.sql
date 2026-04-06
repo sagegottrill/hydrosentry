@@ -312,6 +312,7 @@ ALTER TABLE public.risk_zones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.boreholes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.routes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.alerts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.alert_sms_recipients ENABLE ROW LEVEL SECURITY;
 
 -- sensor_nodes: read for SPA + gateways that only insert telemetry still need FK target visibility;
 -- in Supabase, INSERT into telemetry does not require SELECT on parent for anon if FK validated server-side —
@@ -387,6 +388,33 @@ DROP POLICY IF EXISTS alerts_insert_authenticated ON public.alerts;
 CREATE POLICY alerts_insert_authenticated
   ON public.alerts FOR INSERT TO authenticated WITH CHECK (true);
 
+-- alert_sms_recipients: Admin-managed team phonebook.
+-- Demo policy: allow SPA reads/writes (tighten later with auth).
+
+DROP POLICY IF EXISTS alert_sms_recipients_select_anon ON public.alert_sms_recipients;
+CREATE POLICY alert_sms_recipients_select_anon
+  ON public.alert_sms_recipients FOR SELECT TO anon USING (true);
+
+DROP POLICY IF EXISTS alert_sms_recipients_select_authenticated ON public.alert_sms_recipients;
+CREATE POLICY alert_sms_recipients_select_authenticated
+  ON public.alert_sms_recipients FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS alert_sms_recipients_insert_anon ON public.alert_sms_recipients;
+CREATE POLICY alert_sms_recipients_insert_anon
+  ON public.alert_sms_recipients FOR INSERT TO anon WITH CHECK (true);
+
+DROP POLICY IF EXISTS alert_sms_recipients_insert_authenticated ON public.alert_sms_recipients;
+CREATE POLICY alert_sms_recipients_insert_authenticated
+  ON public.alert_sms_recipients FOR INSERT TO authenticated WITH CHECK (true);
+
+DROP POLICY IF EXISTS alert_sms_recipients_update_anon ON public.alert_sms_recipients;
+CREATE POLICY alert_sms_recipients_update_anon
+  ON public.alert_sms_recipients FOR UPDATE TO anon USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS alert_sms_recipients_update_authenticated ON public.alert_sms_recipients;
+CREATE POLICY alert_sms_recipients_update_authenticated
+  ON public.alert_sms_recipients FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+
 -- -----------------------------------------------------------------------------
 -- API privileges (PostgREST / Supabase client)
 -- -----------------------------------------------------------------------------
@@ -400,6 +428,7 @@ GRANT SELECT ON public.risk_zones TO anon, authenticated;
 GRANT SELECT ON public.boreholes TO anon, authenticated;
 GRANT SELECT ON public.routes TO anon, authenticated;
 GRANT SELECT, INSERT ON public.alerts TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE ON public.alert_sms_recipients TO anon, authenticated;
 
 -- -----------------------------------------------------------------------------
 -- Realtime: notify subscribed clients when gateways INSERT telemetry.

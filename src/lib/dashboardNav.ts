@@ -10,6 +10,7 @@ import {
   Bell,
   Users,
   Smartphone,
+  UserCog,
 } from 'lucide-react';
 
 export type DashboardNavItem = {
@@ -29,6 +30,7 @@ export const dashboardNavItems: DashboardNavItem[] = [
   { id: 'alerts', label: 'Alert History', icon: Bell, path: '/alerts', description: 'Alert timeline & SMS log' },
   { id: 'wardens', label: 'Sensor Wardens', icon: Users, path: '/wardens', description: 'Youth employment program' },
   { id: 'field-report', label: 'Warden Mode', icon: Smartphone, path: '/field-report', description: 'Mobile field hardware reporting' },
+  { id: 'team', label: 'Team Settings', icon: UserCog, path: '/team', description: 'Manage SMS recipients' },
   { id: 'dispatcher', label: 'Dispatcher', icon: Send, path: '/dispatcher', description: 'Work order management' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/settings', description: 'System configuration' },
 ];
