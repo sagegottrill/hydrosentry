@@ -186,7 +186,7 @@ export default function Landing() {
                                 variant="outline"
                                 size="sm"
                                 className="hidden h-9 border-slate-200 text-slate-700 sm:inline-flex"
-                                onClick={() => navigate('/dashboard')}
+                                onClick={() => navigate('/demo')}
                             >
                                 Demo
                             </Button>
@@ -240,7 +240,7 @@ export default function Landing() {
                                     <Button
                                         size="lg"
                                         className="h-12 rounded-xl bg-primary px-7 text-base font-semibold shadow-lg shadow-primary/15 hover:bg-primary/90"
-                                        onClick={() => navigate('/dashboard')}
+                                        onClick={() => navigate('/demo')}
                                     >
                                         Access live demo
                                         <ArrowRight className="ml-2 h-5 w-5" />
@@ -265,7 +265,7 @@ export default function Landing() {
                     <div className="mx-auto grid max-w-7xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         <button
                             type="button"
-                            onClick={() => navigate('/dashboard')}
+                            onClick={() => navigate('/demo')}
                             className="group flex flex-col rounded-2xl bg-primary p-6 text-left text-primary-foreground shadow-xl shadow-primary/20 transition hover:bg-primary/95"
                         >
                             <LayoutDashboard className="mb-4 h-8 w-8 opacity-90" strokeWidth={1.5} />
@@ -572,7 +572,7 @@ export default function Landing() {
                                 <Button
                                     size="lg"
                                     className="h-12 rounded-xl bg-primary px-8 font-semibold"
-                                    onClick={() => navigate('/dashboard')}
+                                    onClick={() => navigate('/demo')}
                                 >
                                     Access live demo
                                     <ArrowRight className="ml-2 h-5 w-5" />
