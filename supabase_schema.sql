@@ -216,6 +216,27 @@ COMMENT ON COLUMN public.alerts.telemetry_snapshot IS 'Optional SensorTelemetryS
 ALTER TABLE public.alerts ADD COLUMN IF NOT EXISTS field_notes text;
 
 -- -----------------------------------------------------------------------------
+-- alert_sms_recipients — ops MSISDNs for critical Termii SMS (admin / dispatcher)
+-- Queried server-side only (Vercel + SUPABASE_SERVICE_ROLE_KEY). Not exposed to anon.
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS public.alert_sms_recipients (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  display_name text NOT NULL DEFAULT '',
+  phone_number text NOT NULL,
+  role text NOT NULL CHECK (role IN ('admin', 'dispatcher')),
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_alert_sms_recipients_phone ON public.alert_sms_recipients (phone_number);
+
+COMMENT ON TABLE public.alert_sms_recipients IS 'Phone numbers for critical warden field SMS; roles admin | dispatcher.';
+
+ALTER TABLE public.alert_sms_recipients ENABLE ROW LEVEL SECURITY;
+
+-- -----------------------------------------------------------------------------
 -- updated_at trigger
 -- -----------------------------------------------------------------------------
 

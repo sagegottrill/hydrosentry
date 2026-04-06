@@ -119,10 +119,25 @@ export default function WardenFieldReport() {
       let criticalSmsOk = false;
       if (smsMessage) {
         try {
-          await requestWardenCriticalSms(smsMessage);
-          criticalSmsOk = true;
+          // Recipients: server loads alert_sms_recipients (admin | dispatcher) from Supabase, then Termii per number.
+          const smsOutcome = await requestWardenCriticalSms(smsMessage);
+          if (smsOutcome.skipped) {
+            console.info('[WardenFieldReport] Critical SMS skipped: no active admin/dispatcher numbers in DB.');
+            toast.message('Report saved; no SMS recipients', {
+              description:
+                'Add rows to alert_sms_recipients (role admin or dispatcher) in Supabase to enable Termii.',
+            });
+          } else if (smsOutcome.sent > 0) {
+            criticalSmsOk = true;
+          } else {
+            console.warn('[WardenFieldReport] Termii dispatch attempted but no successful sends.');
+            toast.warning('Report saved; SMS not delivered', {
+              description: 'Check Termii credentials and recipient numbers in alert_sms_recipients.',
+            });
+          }
         } catch (smsErr) {
           const msg = smsErr instanceof Error ? smsErr.message : 'SMS failed';
+          console.warn('[WardenFieldReport] SMS request error:', msg);
           toast.warning('Report saved; SMS not sent', { description: msg });
         }
       }
@@ -134,7 +149,10 @@ export default function WardenFieldReport() {
           : 'Field report synced to Alert History and the header bell.';
 
       toast.success('Successfully submitted', {
-        description: smsMessage && criticalSmsOk ? `${baseDescription} Critical SMS sent via Termii.` : baseDescription,
+        description:
+          smsMessage && criticalSmsOk
+            ? `${baseDescription} Critical SMS sent via Termii to configured recipients.`
+            : baseDescription,
       });
       setStatus(null);
       setNotes('');

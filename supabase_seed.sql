@@ -370,3 +370,12 @@
   -- SN-008  eeeeeeee-0000-4000-8000-000000000008
   -- SN-009  eeeeeeee-0000-4000-8000-000000000009
   -- SN-010  eeeeeeee-0000-4000-8000-000000000010
+
+  -- -----------------------------------------------------------------------------
+  -- Critical SMS recipients (Termii via Vercel /api/send-termii-sms)
+  -- Replace with real MSISDNs (digits only, country code, no +). Roles: admin | dispatcher.
+  -- -----------------------------------------------------------------------------
+  -- INSERT INTO public.alert_sms_recipients (display_name, phone_number, role, is_active)
+  -- VALUES
+  --   ('Ops lead', '2348012345678', 'admin', true),
+  --   ('Dispatch desk', '2348098765432', 'dispatcher', true);
