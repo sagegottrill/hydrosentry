@@ -81,13 +81,21 @@ function resolveAdmin1Name(props: Record<string, unknown> | undefined): string |
   return v ? v.trim() : null;
 }
 
-// Ngadda River path
+// Ngadda River path (mocked) — updated to pass through real nodes:
+// SN-004 (Alau Dam Monitor) → SN-001 (Ngadda Bridge Alpha, Maiduguri).
 const ngaddaRiverPath: L.LatLngExpression[] = [
-  [11.8200, 13.0800],
-  [11.8350, 13.1200],
-  [11.8456, 13.1523],
-  [11.8520, 13.1700],
-  [11.8600, 13.2000]
+  // Start near Alau Dam Monitor
+  [11.0667, 13.0833],
+  // Flow north-east toward Maiduguri corridor
+  [11.2100, 13.1000],
+  [11.4200, 13.1200],
+  [11.6100, 13.1350],
+  [11.7400, 13.1450],
+  // Pass directly through Ngadda Bridge Alpha
+  [11.8372, 13.1541],
+  // Continue slightly beyond the bridge for visual continuity
+  [11.8600, 13.1750],
+  [11.8850, 13.2050],
 ];
 
 interface CrisisMapProps {
