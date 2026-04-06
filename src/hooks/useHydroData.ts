@@ -65,9 +65,9 @@ const mockRiskZones: RiskZone[] = [
 const mockBoreholes: Borehole[] = [
   {
     id: 'bh-001',
-    name: 'Pulka Zone C Borehole',
-    location: 'Pulka Zone C',
-    coordinates: [11.1890, 13.6540],
+    name: 'Dikwa Water Point Borehole',
+    location: 'Dikwa',
+    coordinates: [12.0361, 13.9180],
     status: 'failure',
     thirstIndex: 9.2,
     crpdScore: 9.8,
@@ -77,7 +77,7 @@ const mockBoreholes: Borehole[] = [
     id: 'bh-002',
     name: 'Gwoza Central Well',
     location: 'Gwoza LGA',
-    coordinates: [11.0823, 13.6980],
+    coordinates: [11.0833, 13.5167],
     status: 'failure',
     thirstIndex: 8.5,
     crpdScore: 8.2,
@@ -87,7 +87,7 @@ const mockBoreholes: Borehole[] = [
     id: 'bh-003',
     name: 'Bama Water Point',
     location: 'Bama',
-    coordinates: [11.5220, 13.6890],
+    coordinates: [11.5218, 13.6883],
     status: 'maintenance',
     thirstIndex: 6.0,
     crpdScore: 5.5,
@@ -143,11 +143,12 @@ const mockAlerts = DISPATCH_MOCK_ALERTS_INITIAL;
 const mockRoutes: Route[] = [
   {
     id: 'rt-001',
-    name: 'Burtali North Corridor',
+    name: 'Gwoza → Bama Pastoral Corridor',
     coordinates: [
-      [11.4500, 13.3000],
-      [11.3000, 13.5000],
-      [11.1890, 13.6540]
+      [11.0833, 13.5167], // Gwoza
+      [11.2200, 13.5600],
+      [11.3800, 13.6100],
+      [11.5218, 13.6883], // Bama
     ],
     status: 'verified',
     type: 'herder',
@@ -155,11 +156,12 @@ const mockRoutes: Route[] = [
   },
   {
     id: 'rt-002',
-    name: 'Yelwata-Pulka Route',
+    name: 'Bama → Dikwa North Track',
     coordinates: [
-      [11.2500, 13.4500],
-      [11.2000, 13.5500],
-      [11.1890, 13.6540]
+      [11.5218, 13.6883], // Bama
+      [11.7200, 13.7800],
+      [11.9000, 13.8600],
+      [12.0361, 13.9180], // Dikwa
     ],
     status: 'verified',
     type: 'herder',
@@ -167,11 +169,12 @@ const mockRoutes: Route[] = [
   },
   {
     id: 'rt-003',
-    name: 'Gwoza Safe Passage',
+    name: 'Gwoza Ridge Bypass',
     coordinates: [
-      [11.0823, 13.6980],
-      [11.1500, 13.6200],
-      [11.2500, 13.5500]
+      [11.0833, 13.5167], // Gwoza
+      [11.1600, 13.5800],
+      [11.2600, 13.6400],
+      [11.3600, 13.6900],
     ],
     status: 'unverified',
     type: 'herder',
