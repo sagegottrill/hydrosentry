@@ -52,7 +52,7 @@ const boreholeIcon = createCustomIcon('#f59e0b', 24);
 
 // Borno State center coordinates (Maiduguri)
 const BORNO_CENTER: L.LatLngExpression = [11.8333, 13.1500];
-const DEFAULT_ZOOM = 9;
+const DEFAULT_ZOOM = 8;
 
 // Ngadda River path
 const ngaddaRiverPath: L.LatLngExpression[] = [
