@@ -53,6 +53,33 @@ const boreholeIcon = createCustomIcon('#f59e0b', 24);
 // Borno State center coordinates (Maiduguri)
 const BORNO_CENTER: L.LatLngExpression = [11.8333, 13.1500];
 const DEFAULT_ZOOM = 8;
+const BORNO_ADMIN1_NAME = 'Borno';
+
+type GeoJsonFeature = {
+  type: 'Feature';
+  properties?: Record<string, unknown>;
+  geometry?: unknown;
+};
+
+type GeoJsonFeatureCollection = {
+  type: 'FeatureCollection';
+  features?: GeoJsonFeature[];
+};
+
+function resolveAdmin1Name(props: Record<string, unknown> | undefined): string | null {
+  if (!props) return null;
+  const candidates = [
+    props.admin1Name,
+    props.ADM1_EN,
+    props.adm1_name,
+    props.adm1Name,
+    props.ADM1_NAME,
+    props.state,
+    props.State,
+  ];
+  const v = candidates.find((x) => typeof x === 'string') as string | undefined;
+  return v ? v.trim() : null;
+}
 
 // Ngadda River path
 const ngaddaRiverPath: L.LatLngExpression[] = [
@@ -93,6 +120,7 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch, se
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layersRef = useRef<L.LayerGroup | null>(null);
+  const bornoLgaLayerRef = useRef<L.GeoJSON | null>(null);
 
   // Initialize map
   useEffect(() => {
@@ -112,6 +140,7 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch, se
 
     // Create layer group for seasonal content
     layersRef.current = L.layerGroup().addTo(map);
+    bornoLgaLayerRef.current = null;
     mapRef.current = map;
 
     // Cleanup
@@ -119,6 +148,69 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch, se
       map.remove();
       mapRef.current = null;
       layersRef.current = null;
+    };
+  }, []);
+
+  // Load HDX Nigeria Admin2 polygons and filter to Borno (admin1).
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const res = await fetch('/nga_admin2.geojson', { cache: 'force-cache' });
+        if (!res.ok) return;
+        const data = (await res.json()) as GeoJsonFeatureCollection;
+        if (cancelled) return;
+
+        const features = (data.features ?? []).filter((f) => {
+          const props = (f?.properties ?? {}) as Record<string, unknown>;
+          const admin1 = resolveAdmin1Name(props);
+          return admin1?.toLowerCase() === BORNO_ADMIN1_NAME.toLowerCase();
+        });
+
+        // Remove prior layer (hot reload / rerender safe)
+        if (bornoLgaLayerRef.current) {
+          bornoLgaLayerRef.current.removeFrom(mapRef.current!);
+          bornoLgaLayerRef.current = null;
+        }
+
+        if (features.length === 0) return;
+
+        const layer = L.geoJSON(
+          { type: 'FeatureCollection', features } as unknown as GeoJSON.GeoJsonObject,
+          {
+            style: () => ({
+              color: '#0f766e', // teal border
+              weight: 2,
+              opacity: 0.9,
+              fillColor: '#0ea5e9', // blue fill
+              fillOpacity: 0.12,
+            }),
+          },
+        );
+
+        layer.addTo(mapRef.current!);
+        layer.bringToBack(); // keep pins/season layers above
+        bornoLgaLayerRef.current = layer;
+
+        // Fit view to Borno polygons (fallback is BORNO_CENTER/DEFAULT_ZOOM from init).
+        try {
+          const bounds = layer.getBounds();
+          if (bounds.isValid()) {
+            mapRef.current!.fitBounds(bounds, { padding: [24, 24] });
+          }
+        } catch {
+          // ignore bounds errors
+        }
+      } catch {
+        // ignore GeoJSON load failures (offline)
+      }
+    })();
+
+    return () => {
+      cancelled = true;
     };
   }, []);
 
