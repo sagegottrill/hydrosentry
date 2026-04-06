@@ -230,7 +230,7 @@ export default function Landing() {
 
                             <ScrollReveal animation="fade-up" delay={0.15}>
                                 <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
-                                    HydroSentry is a localized, offline-first early warning blueprint protecting the Lake Chad Basin.
+                                    HydroSentry is the flagship GIS module of The Sahel Resilience Stack—a localized, offline-first early warning blueprint protecting the Lake Chad Basin.
                                     Built entirely on open hardware and open data, maintained by local youth.
                                 </p>
                             </ScrollReveal>
@@ -455,7 +455,7 @@ export default function Landing() {
                                         step: '01',
                                         icon: Droplets,
                                         title: 'Sense & collect',
-                                        desc: 'Rugged ultrasonic sensors measure water levels every 30 seconds. Solar-powered units ensure 5-10 years of continuous operation.',
+                                        desc: 'Rugged ultrasonic sensors measure water levels every 30 seconds. Solar-powered LiFePO₄ units engineered for multi-year continuous operation in extreme Sahel heat.',
                                     },
                                     {
                                         step: '02',
