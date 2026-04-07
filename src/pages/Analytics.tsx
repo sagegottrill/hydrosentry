@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     AreaChart,
     Area,
@@ -85,18 +85,41 @@ function sortByAt(points: ReadingPoint[]): ReadingPoint[] {
     return [...points].sort((a, b) => a.at - b.at);
 }
 
+function dayKey(ts: number): string {
+    const d = new Date(ts);
+    if (Number.isNaN(d.getTime())) return 'invalid';
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+function formatDayLabel(key: string): string {
+    const [y, m, d] = key.split('-').map((x) => Number(x));
+    if (!y || !m || !d) return key;
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
 export default function Analytics() {
     const { nodes, readingHistories, isFetching, isLoading } = useSensorNetwork();
 
+    const [focusNodeId, setFocusNodeId] = useState<string | null>(null);
+    const [selectedDay, setSelectedDay] = useState<string | null>(null);
+
     const focusNode = useMemo(() => {
         if (nodes.length === 0) return null;
+        if (focusNodeId) {
+            const byId = nodes.find((n) => n.id === focusNodeId);
+            if (byId) return byId;
+        }
         return (
             nodes.find((n) => n.publicCode === 'SN-004') ??
             nodes.find((n) => n.name.toLowerCase().includes('alau')) ??
             nodes.find((n) => n.type === 'water_level') ??
             nodes[0]
         );
-    }, [nodes]);
+    }, [nodes, focusNodeId]);
 
     const waterNodes = useMemo(
         () => nodes.filter((n) => n.type === 'water_level' && n.node_status !== 'offline'),
@@ -180,17 +203,39 @@ export default function Analytics() {
 
     const chartMaxCm = (n: NonNullable<typeof focusNode>) => chartMaxCmClearance(n);
 
+    const availableDays = useMemo(() => {
+        const src = focusHistory.length > 0 ? focusHistory : chartData;
+        const uniq: string[] = [];
+        const seen = new Set<string>();
+        for (let i = src.length - 1; i >= 0; i -= 1) {
+            const k = dayKey(src[i]!.at);
+            if (k === 'invalid') continue;
+            if (seen.has(k)) continue;
+            seen.add(k);
+            uniq.push(k);
+            if (uniq.length >= 10) break;
+        }
+        return uniq.reverse();
+    }, [chartData, focusHistory]);
+
+    const filteredChartData = useMemo(() => {
+        if (!selectedDay) return chartData;
+        return chartData.filter((p) => dayKey(p.at) === selectedDay);
+    }, [chartData, selectedDay]);
+
+    const onPickFocusNode = useCallback((nodeId: string) => {
+        setFocusNodeId(nodeId);
+        setSelectedDay(null);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []);
+
     if (isLoading) {
         return (
             <DashboardLayout>
                 <DataRefetchBar active={isFetching && !isLoading} />
-                <div className="dashboard-overview-root mx-auto max-w-[1920px]">
-                    <div className="dashboard-page-body">
-                        <PageHeader variant="compact" icon={BarChart3} title="Water level analytics" />
-                        <div className="panel-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
-                            <AnalyticsPageSkeleton />
-                        </div>
-                    </div>
+                <div className="dashboard-shell">
+                    <PageHeader variant="compact" icon={BarChart3} title="Water level analytics" />
+                    <AnalyticsPageSkeleton />
                 </div>
             </DashboardLayout>
         );
@@ -199,10 +244,8 @@ export default function Analytics() {
     if (nodes.length === 0 || !focusNode) {
         return (
             <DashboardLayout>
-                <div className="dashboard-overview-root mx-auto flex max-w-[1920px] flex-1 items-center justify-center px-3 py-12 sm:px-5 md:px-6">
-                    <p className="text-center text-sm text-muted-foreground">
-                        No sensor nodes configured or Supabase is not connected.
-                    </p>
+                <div className="dashboard-shell py-20 text-center">
+                    <p className="text-sm text-muted-foreground">No sensor nodes configured or Supabase is not connected.</p>
                 </div>
             </DashboardLayout>
         );
@@ -211,17 +254,15 @@ export default function Analytics() {
     return (
         <DashboardLayout>
             <DataRefetchBar active={isFetching && !isLoading} />
-            <div className="dashboard-overview-root mx-auto max-w-[1920px]">
-                <div className="dashboard-page-body">
-                    <PageHeader variant="compact" icon={BarChart3} title="Water level analytics" />
+            <div className="dashboard-shell">
+                <PageHeader variant="compact" icon={BarChart3} title="Water level analytics" />
 
-                    <LiveIndicator className="shrink-0" pulsing>
-                        {waterNodes.length} ultrasonic channel{waterNodes.length === 1 ? '' : 's'} active
-                        {isFetching ? ' · refreshing' : ''}
-                    </LiveIndicator>
+                <LiveIndicator pulsing>
+                    {waterNodes.length} ultrasonic channel{waterNodes.length === 1 ? '' : 's'} active
+                    {isFetching ? ' · refreshing' : ''}
+                </LiveIndicator>
 
-                    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden max-md:min-h-min max-md:overflow-visible">
-                <div className="surface-card flex min-h-[min(16rem,44svh)] min-h-0 flex-[2] flex-col overflow-hidden md:min-h-0">
+                <div className="surface-card overflow-hidden">
                     <div className="shrink-0 border-b border-border/50 p-4 sm:p-5">
                         <div className="flex flex-wrap items-start justify-between gap-4">
                             <div className="min-w-0 space-y-2">
@@ -269,10 +310,40 @@ export default function Analytics() {
                             </div>
                         </div>
                     </div>
-                    <div className="flex min-h-0 flex-1 flex-col p-4 pt-0 sm:p-5 sm:pt-0">
-                        <div className="mt-2 min-h-[12rem] min-h-0 w-full flex-1">
+                    <div className="p-4 pt-0 sm:p-5 sm:pt-0">
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setSelectedDay(null)}
+                                className={cn(
+                                    'rounded-md border px-2.5 py-1 text-xs font-semibold transition-colors',
+                                    selectedDay == null
+                                        ? 'border-primary/30 bg-primary/10 text-primary'
+                                        : 'border-border bg-card text-muted-foreground hover:bg-muted/30 hover:text-foreground',
+                                )}
+                            >
+                                Live
+                            </button>
+                            {availableDays.map((d) => (
+                                <button
+                                    key={d}
+                                    type="button"
+                                    onClick={() => setSelectedDay(d)}
+                                    className={cn(
+                                        'rounded-md border px-2.5 py-1 text-xs font-semibold transition-colors',
+                                        selectedDay === d
+                                            ? 'border-primary/30 bg-primary/10 text-primary'
+                                            : 'border-border bg-card text-muted-foreground hover:bg-muted/30 hover:text-foreground',
+                                    )}
+                                >
+                                    {formatDayLabel(d)}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="mt-3 h-72 w-full sm:h-80">
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <AreaChart data={filteredChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="waterGradient" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor={CHART_PRIMARY} stopOpacity={0.2} />
@@ -378,12 +449,11 @@ export default function Analytics() {
                     </div>
                 </div>
 
-                <div className="flex min-h-[min(12rem,36svh)] min-h-0 flex-1 flex-col overflow-hidden md:min-h-0">
-                    <h2 className="flex shrink-0 items-center gap-2 text-base font-semibold tracking-tight text-foreground">
+                <div className="space-y-4">
+                    <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight text-foreground">
                         <Droplets className="h-5 w-5 text-primary" strokeWidth={1.75} />
                         Regional sensors
                     </h2>
-                    <div className="panel-scroll mt-3 min-h-0 flex-1 overflow-y-auto overscroll-y-contain pr-1">
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {waterNodes.map((node) => {
                             const history = readingHistories[node.id] ?? [];
@@ -401,10 +471,13 @@ export default function Analytics() {
                             const power = analyticsPowerBadge(node);
 
                             return (
-                                <div
+                                <button
                                     key={node.id}
+                                    type="button"
+                                    onClick={() => onPickFocusNode(node.id)}
                                     className={cn(
-                                        'dashboard-card p-5 transition-shadow hover:shadow-sm',
+                                        'dashboard-card p-5 text-left transition-shadow hover:shadow-sm',
+                                        focusNode.id === node.id && 'ring-2 ring-primary/25 ring-inset',
                                         wl === 'critical' && 'border-destructive/35',
                                         wl === 'warning' && 'border-amber-200/90',
                                     )}
@@ -480,12 +553,9 @@ export default function Analytics() {
                                             Floors &lt; nominal depth · LiFePO₄: ≥{ANALYTICS_ONLINE_MIN_V.toFixed(2)} V → Online
                                         </span>
                                     </div>
-                                </div>
+                                </button>
                             );
                         })}
-                    </div>
-                    </div>
-                </div>
                     </div>
                 </div>
             </div>
