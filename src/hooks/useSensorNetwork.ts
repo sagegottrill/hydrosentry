@@ -22,7 +22,11 @@ interface SensorNodeRow {
   latitude: number;
   longitude: number;
   type: SensorHardwareType;
-  signal_strength: number;
+  /**
+   * Legacy composite RSSI-style display (0–100).
+   * Stored in DB as `signal_strength`; mapped to app `SensorNode.signalStrength`.
+   */
+  signal_strength: number | null;
   reading_unit: string;
   tinyml_status: string;
   firmware_version: string;
@@ -87,7 +91,7 @@ function mapRowToSensorNode(
     water_level_cm: isWater ? waterCm : 0,
     battery_voltage: voltage,
     node_status: nodeStatus,
-    signal_strength: row.signal_strength,
+    signalStrength: Number(row.signal_strength ?? 0),
     currentReading,
     readingUnit: row.reading_unit,
     lastUpdated: formatLastUpdated(latest?.recorded_at),
