@@ -16,14 +16,38 @@ import {
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { HydroSentryLogo } from '@/components/HydroSentryLogo';
-import { dashboardNavItems, isDashboardNavItemActive } from '@/lib/dashboardNav';
+import type { DashboardNavItem } from '@/lib/dashboardNav';
+import { hydroSentryNavItems, isDashboardNavItemActive } from '@/lib/dashboardNav';
 import { cn } from '@/lib/utils';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+  /** Sidebar items for this module. */
+  navItems?: DashboardNavItem[];
+  /** Active matcher for sidebar items. */
+  isItemActive?: (pathname: string, search: string, item: DashboardNavItem) => boolean;
+  /** Sidebar brand (defaults to HydroSentry). */
+  brand?: React.ReactNode;
+  /** Small subtitle under brand in mobile sheet. */
+  brandSubtitle?: string;
+  /** Show the global search bar in the header. */
+  showSearch?: boolean;
+  /** Placeholder for search input. */
+  searchPlaceholder?: string;
+  /** Show mobile dock (HydroSentry only). */
+  showMobileDock?: boolean;
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({
+  children,
+  navItems = hydroSentryNavItems,
+  isItemActive = isDashboardNavItemActive,
+  brand,
+  brandSubtitle = 'HydroSentry command',
+  showSearch = true,
+  searchPlaceholder = 'Search sensors, alerts…',
+  showMobileDock = true,
+}: DashboardLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const navigate = useNavigate();
@@ -39,6 +63,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const runSearch = useCallback(
     (raw: string) => {
+      if (!showSearch) return;
       const q = raw.trim();
       if (!q) {
         toast.message('Search', { description: 'Type a sensor name, code, or location, then press Enter.' });
@@ -47,7 +72,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       navigate(`/sensors?q=${encodeURIComponent(q)}`);
       toast.success('Search applied', { description: `Filtering sensors for “${q}”.` });
     },
-    [navigate],
+    [navigate, showSearch],
   );
 
   const onSearchSubmit = (e: FormEvent) => {
@@ -73,6 +98,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <DashboardSidebar
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          items={navItems}
+          isItemActive={isItemActive}
+          brand={brand}
         />
       </div>
 
@@ -80,16 +108,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <SheetContent side="left" className="flex w-[min(100vw-1rem,20rem)] flex-col gap-0 p-0 sm:max-w-sm">
           <SheetHeader className="border-b border-border px-4 py-4 text-left">
             <SheetTitle className="sr-only">Navigation menu</SheetTitle>
-            <HydroSentryLogo size="small" />
-            <p className="text-xs font-medium text-muted-foreground">HydroSentry command</p>
+            {brand ?? <HydroSentryLogo size="small" />}
+            <p className="text-xs font-medium text-muted-foreground">{brandSubtitle}</p>
           </SheetHeader>
           <nav className="flex-1 overflow-y-auto p-3" aria-label="Main navigation">
             <p className="mb-2 px-2 text-2xs font-normal uppercase tracking-wide text-muted-foreground/80">
               Navigation
             </p>
             <div className="space-y-1">
-              {dashboardNavItems.map((item) => {
-                const active = isDashboardNavItemActive(location.pathname, location.search, item);
+              {navItems.map((item) => {
+                const active = isItemActive(location.pathname, location.search, item);
                 const Icon = item.icon;
                 return (
                   <button
@@ -133,21 +161,25 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <Menu className="h-5 w-5" strokeWidth={1.75} />
             </Button>
 
-            <form className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3" onSubmit={onSearchSubmit}>
-              <div className="relative w-full max-w-md min-w-0">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="search"
-                  name="q"
-                  placeholder="Search sensors, alerts…"
-                  value={searchDraft}
-                  onChange={(e) => setSearchDraft(e.target.value)}
-                  onKeyDown={onSearchKeyDown}
-                  className="h-11 min-h-11 w-full rounded-md border border-border bg-muted/30 py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-primary/25 focus:bg-card focus:outline-none focus:ring-1 focus:ring-primary/20 sm:h-9 sm:min-h-0"
-                  autoComplete="off"
-                />
-              </div>
-            </form>
+            {showSearch ? (
+              <form className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3" onSubmit={onSearchSubmit}>
+                <div className="relative w-full max-w-md min-w-0">
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="search"
+                    name="q"
+                    placeholder={searchPlaceholder}
+                    value={searchDraft}
+                    onChange={(e) => setSearchDraft(e.target.value)}
+                    onKeyDown={onSearchKeyDown}
+                    className="h-11 min-h-11 w-full rounded-md border border-border bg-muted/30 py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-primary/25 focus:bg-card focus:outline-none focus:ring-1 focus:ring-primary/20 sm:h-9 sm:min-h-0"
+                    autoComplete="off"
+                  />
+                </div>
+              </form>
+            ) : (
+              <div className="min-w-0 flex-1" />
+            )}
 
             <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
               <HeaderNotifications />
@@ -208,7 +240,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {children}
         </main>
 
-        <MobileDashboardDock onOpenMenu={() => setMobileNavOpen(true)} />
+        {showMobileDock ? <MobileDashboardDock onOpenMenu={() => setMobileNavOpen(true)} /> : null}
       </div>
     </div>
   );

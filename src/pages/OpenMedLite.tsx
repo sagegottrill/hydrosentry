@@ -5,6 +5,8 @@ import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { PageHeader } from '@/components/dashboard/PageHeader';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { OpenMedLiteLogo } from '@/components/OpenMedLiteLogo';
+import { openMedLiteNavItems, isDashboardNavItemActive } from '@/lib/dashboardNav';
 
 type Conflict = {
     id: string;
@@ -102,7 +104,14 @@ export default function OpenMedLite() {
     };
 
     return (
-        <DashboardLayout>
+        <DashboardLayout
+            navItems={openMedLiteNavItems}
+            isItemActive={isDashboardNavItemActive}
+            brand={<OpenMedLiteLogo size="small" />}
+            brandSubtitle="Clinical console"
+            showSearch={false}
+            showMobileDock={false}
+        >
             <div className="dashboard-overview-root mx-auto max-w-[1920px]">
                 <div className="dashboard-page-body">
                     <PageHeader

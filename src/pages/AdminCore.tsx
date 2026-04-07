@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { AdminCoreLogo } from '@/components/AdminCoreLogo';
+import { adminCoreNavItems, isDashboardNavItemActive } from '@/lib/dashboardNav';
 
 type QueueRow = {
     id: string;
@@ -72,7 +74,14 @@ export default function AdminCore() {
     };
 
     return (
-        <DashboardLayout>
+        <DashboardLayout
+            navItems={adminCoreNavItems}
+            isItemActive={isDashboardNavItemActive}
+            brand={<AdminCoreLogo size="small" />}
+            brandSubtitle="B2G clearance console"
+            showSearch={false}
+            showMobileDock={false}
+        >
             <div className="dashboard-overview-root mx-auto max-w-[1920px]">
                 <div className="dashboard-page-body">
                     <PageHeader

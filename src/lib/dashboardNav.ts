@@ -13,6 +13,14 @@ import {
   UserCog,
   HeartPulse,
   Building2,
+  ClipboardList,
+  Stethoscope,
+  FolderHeart,
+  RefreshCw,
+  ShieldCheck,
+  Activity,
+  FileSearch,
+  Network,
 } from 'lucide-react';
 
 export type DashboardNavItem = {
@@ -23,7 +31,8 @@ export type DashboardNavItem = {
   description: string;
 };
 
-export const dashboardNavItems: DashboardNavItem[] = [
+/** HydroSentry (GIS + telemetry) navigation. */
+export const hydroSentryNavItems: DashboardNavItem[] = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, path: '/dashboard', description: 'Main dashboard view' },
   { id: 'wet-season', label: 'Wet Season (Flood Shield)', icon: Droplets, path: '/dashboard?season=wet', description: 'Flood monitoring mode' },
   { id: 'dry-season', label: 'Dry Season (Conflict Engine)', icon: Sun, path: '/dashboard?season=dry', description: 'Drought & conflict mode' },
@@ -35,8 +44,22 @@ export const dashboardNavItems: DashboardNavItem[] = [
   { id: 'team', label: 'Team Settings', icon: UserCog, path: '/team', description: 'Manage SMS recipients' },
   { id: 'dispatcher', label: 'Dispatcher', icon: Send, path: '/dispatcher', description: 'Work order management' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/settings', description: 'System configuration' },
-  { id: 'openmed', label: 'OpenMed Lite', icon: HeartPulse, path: '/openmed', description: 'CRDT clinical conflict desk' },
-  { id: 'admin-core', label: 'Admin Core', icon: Building2, path: '/admin-core', description: 'B2G clearance console' },
+];
+
+/** OpenMed Lite (clinical) navigation. */
+export const openMedLiteNavItems: DashboardNavItem[] = [
+  { id: 'patient-registry', label: 'Patient Registry', icon: FolderHeart, path: '/openmed', description: 'Patient registry (demo)' },
+  { id: 'triage-console', label: 'Triage Console', icon: Stethoscope, path: '/openmed?tab=triage', description: 'Triage console (demo)' },
+  { id: 'conflict-desk', label: 'Conflict Resolution Desk', icon: HeartPulse, path: '/openmed?tab=conflicts', description: 'Resolve CRDT conflicts' },
+  { id: 'sync-logs', label: 'Sync Logs', icon: RefreshCw, path: '/openmed?tab=sync', description: 'Replication & sync audit' },
+];
+
+/** Admin Core (B2G clearance) navigation. */
+export const adminCoreNavItems: DashboardNavItem[] = [
+  { id: 'clearance-queue', label: 'Clearance Queue', icon: Building2, path: '/admin-core', description: 'Pending clearance requests' },
+  { id: 'rbac-audit', label: 'RBAC Audit Logs', icon: FileSearch, path: '/admin-core?tab=rbac', description: 'Role & policy audit trail' },
+  { id: 'tenant-access', label: 'Tenant Access', icon: Network, path: '/admin-core?tab=tenant', description: 'Tenant isolation & access' },
+  { id: 'system-health', label: 'System Health', icon: Activity, path: '/admin-core?tab=health', description: 'Platform status' },
 ];
 
 export function isDashboardNavItemActive(

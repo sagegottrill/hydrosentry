@@ -3,14 +3,17 @@ import { ChevronLeft } from 'lucide-react';
 import { HydroSentryLogo } from '@/components/HydroSentryLogo';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { dashboardNavItems, isDashboardNavItemActive } from '@/lib/dashboardNav';
+import type { DashboardNavItem } from '@/lib/dashboardNav';
 
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  items: DashboardNavItem[];
+  isItemActive: (pathname: string, search: string, item: DashboardNavItem) => boolean;
+  brand?: React.ReactNode;
 }
 
-export function DashboardSidebar({ collapsed, onToggle }: SidebarProps) {
+export function DashboardSidebar({ collapsed, onToggle, items, isItemActive, brand }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -22,7 +25,7 @@ export function DashboardSidebar({ collapsed, onToggle }: SidebarProps) {
       )}
     >
       <div className="flex h-14 items-center justify-between px-3">
-        {!collapsed && <HydroSentryLogo size="small" />}
+        {!collapsed && (brand ?? <HydroSentryLogo size="small" />)}
         <Button
           variant="ghost"
           size="icon"
@@ -43,8 +46,8 @@ export function DashboardSidebar({ collapsed, onToggle }: SidebarProps) {
             </p>
           )}
         </div>
-        {dashboardNavItems.map((item) => {
-          const active = isDashboardNavItemActive(location.pathname, location.search, item);
+        {items.map((item) => {
+          const active = isItemActive(location.pathname, location.search, item);
           const Icon = item.icon;
           const isGuild = item.id === 'field-report';
 
