@@ -109,17 +109,33 @@ export default {
           "50%": { opacity: "0.5" },
         },
         "ping-slow": {
-          "75%, 100%": {
-            transform: "scale(2)",
+          "70%, 100%": {
+            transform: "scale(2.2)",
             opacity: "0",
           },
+        },
+        "critical-border-pulse": {
+          "0%, 100%": {
+            borderColor: "hsl(var(--destructive) / 0.38)",
+            boxShadow: "0 0 0 0 hsl(var(--destructive) / 0.12)",
+          },
+          "50%": {
+            borderColor: "hsl(var(--destructive) / 0.62)",
+            boxShadow: "0 0 0 4px hsl(var(--destructive) / 0.08)",
+          },
+        },
+        "live-dot-breathe": {
+          "0%, 100%": { opacity: "1", transform: "scale(1)" },
+          "50%": { opacity: "0.82", transform: "scale(0.92)" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-slow": "pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        "ping-slow": "ping-slow 1.5s cubic-bezier(0, 0, 0.2, 1) infinite",
+        "ping-slow": "ping-slow 2.5s cubic-bezier(0, 0, 0.2, 1) infinite",
+        "critical-border-pulse": "critical-border-pulse 3.5s ease-in-out infinite",
+        "live-dot-breathe": "live-dot-breathe 2.8s ease-in-out infinite",
       },
     },
   },

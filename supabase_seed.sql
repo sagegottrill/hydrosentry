@@ -9,6 +9,9 @@
 -- and every ~5s (poll fallback). Static seed data alone will not drift until you
 -- insert more telemetry.
 --
+-- Run the sensor_nodes INSERT block before telemetry; Gwoza history resolves
+-- `sensor_node_id` by `public_code` so FKs match if that node predates the seed UUID.
+--
 -- Local / demo without hardware: in `.env` set VITE_SIMULATE_TELEMETRY=true
 -- (the SPA will INSERT drifted readings every few seconds; do not ship that to
 -- production long-term — it will grow `telemetry_readings`).
@@ -27,7 +30,7 @@
   --   {
   --     "sensor_node_id": "eeeeeeee-0000-4000-8000-000000000001",
   --     "water_level_cm": 228,
-  --     "battery_voltage": 3.18,
+  --     "battery_voltage": 3.30,
   --     "node_status": "online",
   --     "scalar_reading": null
   --   }
@@ -38,7 +41,7 @@
   --     -H "Authorization: Bearer ANON_KEY" \
   --     -H "Content-Type: application/json" \
   --     -H "Prefer: return=minimal" \
-  --     -d '{"sensor_node_id":"eeeeeeee-0000-4000-8000-000000000001","water_level_cm":228,"battery_voltage":3.18,"node_status":"online","scalar_reading":null}'
+  --     -d '{"sensor_node_id":"eeeeeeee-0000-4000-8000-000000000001","water_level_cm":228,"battery_voltage":3.30,"node_status":"online","scalar_reading":null}'
   --
   -- PowerShell:
   --   $h = @{ apikey = "ANON_KEY"; Authorization = "Bearer ANON_KEY"; "Content-Type" = "application/json"; Prefer = "return=minimal" }
@@ -82,8 +85,8 @@
       'v1.2.4',
       '2026-01-15',
       'Ibrahim Musa',
-      300,
-      400
+      150,
+      80
     ),
     (
       'eeeeeeee-0000-4000-8000-000000000002'::uuid,
@@ -99,8 +102,8 @@
       'v1.2.4',
       '2026-01-18',
       'Aisha Bukar',
-      280,
-      380
+      150,
+      80
     ),
     (
       'eeeeeeee-0000-4000-8000-000000000003'::uuid,
@@ -116,8 +119,8 @@
       'v1.2.4',
       '2026-01-20',
       'Mohammed Yusuf',
-      250,
-      350
+      150,
+      80
     ),
     (
       'eeeeeeee-0000-4000-8000-000000000004'::uuid,
@@ -133,8 +136,8 @@
       'v1.2.4',
       '2026-01-10',
       'Fatima Ali',
-      340,
-      400
+      150,
+      80
     ),
     (
       'eeeeeeee-0000-4000-8000-000000000005'::uuid,
@@ -143,15 +146,15 @@
       'Jere LGA',
       11.88,
       13.1,
-      'rain_gauge',
+      'water_level',
       70,
-      'mm/h',
+      'cm',
       'normal',
       'v1.1.8',
       '2026-02-01',
       'Usman Babagana',
-      25,
-      40
+      150,
+      80
     ),
     (
       'eeeeeeee-0000-4000-8000-000000000006'::uuid,
@@ -184,8 +187,8 @@
       'v1.1.8',
       '2026-02-05',
       'Abdullahi Mala',
-      280,
-      380
+      150,
+      80
     ),
     (
       'eeeeeeee-0000-4000-8000-000000000008'::uuid,
@@ -201,25 +204,8 @@
       'v1.1.8',
       '2026-02-10',
       'Zainab Kyari',
-      320,
-      420
-    ),
-    (
-      'eeeeeeee-0000-4000-8000-000000000009'::uuid,
-      'SN-009',
-      'Monguno Water Station',
-      'Monguno',
-      12.68,
-      13.61,
-      'water_level',
-      74,
-      'cm',
-      'normal',
-      'v1.2.4',
-      '2026-02-15',
-      'Garba Umar',
-      250,
-      350
+      150,
+      80
     ),
     (
       'eeeeeeee-0000-4000-8000-000000000010'::uuid,
@@ -229,14 +215,31 @@
       12.36,
       13.83,
       'water_level',
-      0,
+      88,
       'cm',
       'normal',
       'v1.1.8',
       '2026-02-20',
       'Amina Lawan',
-      280,
-      380
+      150,
+      80
+    ),
+    (
+      'eeeeeeee-0000-4000-8000-000000000012'::uuid,
+      'HS-GWOZA-012',
+      'Gwoza Valley Checkpoint',
+      'Gwoza Valley',
+      11.8311,
+      13.1510,
+      'water_level',
+      95,
+      'cm',
+      'normal',
+      'v1.2.4',
+      '2026-01-22',
+      'Abubakar Shehu',
+      150,
+      80
     )
   ON CONFLICT (public_code) DO UPDATE SET
     name = EXCLUDED.name,
@@ -261,7 +264,7 @@
   SELECT
     'eeeeeeee-0000-4000-8000-000000000001'::uuid,
     215 + (g * 0.6)::double precision,
-    3.18,
+    3.30,
     'online'::public.node_status_type,
     NULL::double precision,
     now() - (g * interval '2 hours')
@@ -270,8 +273,8 @@
   INSERT INTO public.telemetry_readings (sensor_node_id, water_level_cm, battery_voltage, node_status, scalar_reading, recorded_at)
   SELECT
     'eeeeeeee-0000-4000-8000-000000000002'::uuid,
-    170 + (g * 0.5)::double precision,
-    3.14,
+    198 + (g * 0.5)::double precision,
+    3.30,
     'online',
     NULL,
     now() - (g * interval '2 hours')
@@ -280,8 +283,8 @@
   INSERT INTO public.telemetry_readings (sensor_node_id, water_level_cm, battery_voltage, node_status, scalar_reading, recorded_at)
   SELECT
     'eeeeeeee-0000-4000-8000-000000000003'::uuid,
-    110 + (g * 0.35)::double precision,
-    3.2,
+    168 + (g * 0.35)::double precision,
+    3.30,
     'online',
     NULL,
     now() - (g * interval '2 hours')
@@ -291,7 +294,7 @@
   SELECT
     'eeeeeeee-0000-4000-8000-000000000004'::uuid,
     280 + (g * 1.4)::double precision,
-    3.12,
+    3.30,
     'online',
     NULL,
     now() - (g * interval '2 hours')
@@ -301,16 +304,16 @@
   VALUES
     (
       'eeeeeeee-0000-4000-8000-000000000005'::uuid,
-      0,
-      2.98,
-      'low_battery',
-      12.4,
+      215.40,
+      3.30,
+      'online',
+      NULL,
       now() - interval '8 minutes'
     ),
     (
       'eeeeeeee-0000-4000-8000-000000000006'::uuid,
       0,
-      3.17,
+      3.30,
       'online',
       0.8,
       now() - interval '4 minutes'
@@ -319,8 +322,8 @@
   INSERT INTO public.telemetry_readings (sensor_node_id, water_level_cm, battery_voltage, node_status, scalar_reading, recorded_at)
   SELECT
     'eeeeeeee-0000-4000-8000-000000000007'::uuid,
-    135 + (g * 0.55)::double precision,
-    3.09,
+    168 + (g * 0.55)::double precision,
+    3.30,
     'online',
     NULL,
     now() - (g * interval '2 hours')
@@ -329,22 +332,27 @@
   INSERT INTO public.telemetry_readings (sensor_node_id, water_level_cm, battery_voltage, node_status, scalar_reading, recorded_at)
   SELECT
     'eeeeeeee-0000-4000-8000-000000000008'::uuid,
-    185 + (g * 0.55)::double precision,
-    2.92,
+    195 + (g * 0.55)::double precision,
+    3.08,
     'low_battery',
     NULL,
     now() - (g * interval '2 hours')
   FROM generate_series(0, 23) AS g;
 
+  -- Gwoza: bind by public_code so this works even if HS-GWOZA-012 already existed
+  -- with another PK (e2e scripts). ON CONFLICT (public_code) does not rewrite id.
   INSERT INTO public.telemetry_readings (sensor_node_id, water_level_cm, battery_voltage, node_status, scalar_reading, recorded_at)
   SELECT
-    'eeeeeeee-0000-4000-8000-000000000009'::uuid,
-    105 + (g * 0.3)::double precision,
-    3.16,
-    'online',
-    NULL,
+    sn.id,
+    242 + (g * 0.45)::double precision,
+    3.30,
+    'online'::public.node_status_type,
+    NULL::double precision,
     now() - (g * interval '2 hours')
-  FROM generate_series(0, 23) AS g;
+  FROM generate_series(0, 23) AS g
+  CROSS JOIN LATERAL (
+    SELECT id FROM public.sensor_nodes WHERE public_code = 'HS-GWOZA-012' LIMIT 1
+  ) sn;
 
   INSERT INTO public.telemetry_readings (sensor_node_id, water_level_cm, battery_voltage, node_status, scalar_reading, recorded_at)
   VALUES
@@ -368,8 +376,8 @@
   -- SN-006  eeeeeeee-0000-4000-8000-000000000006
   -- SN-007  eeeeeeee-0000-4000-8000-000000000007
   -- SN-008  eeeeeeee-0000-4000-8000-000000000008
-  -- SN-009  eeeeeeee-0000-4000-8000-000000000009
   -- SN-010  eeeeeeee-0000-4000-8000-000000000010
+  -- HS-GWOZA-012  eeeeeeee-0000-4000-8000-000000000012
 
   -- -----------------------------------------------------------------------------
   -- Critical SMS recipients (Termii via Vercel /api/send-termii-sms)

@@ -9,8 +9,10 @@ import {
   BarChart3,
   Bell,
   Users,
-  Smartphone,
+  Shield,
   UserCog,
+  HeartPulse,
+  Building2,
 } from 'lucide-react';
 
 export type DashboardNavItem = {
@@ -29,10 +31,12 @@ export const dashboardNavItems: DashboardNavItem[] = [
   { id: 'analytics', label: 'Water Level Analytics', icon: BarChart3, path: '/analytics', description: 'Hydrological data charts' },
   { id: 'alerts', label: 'Alert History', icon: Bell, path: '/alerts', description: 'Alert timeline & SMS log' },
   { id: 'wardens', label: 'Sensor Wardens', icon: Users, path: '/wardens', description: 'Youth employment program' },
-  { id: 'field-report', label: 'Warden Mode', icon: Smartphone, path: '/field-report', description: 'Mobile field hardware reporting' },
+  { id: 'field-report', label: 'Warden Mode', icon: Shield, path: '/field-report', description: 'Guild field reporting' },
   { id: 'team', label: 'Team Settings', icon: UserCog, path: '/team', description: 'Manage SMS recipients' },
   { id: 'dispatcher', label: 'Dispatcher', icon: Send, path: '/dispatcher', description: 'Work order management' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/settings', description: 'System configuration' },
+  { id: 'openmed', label: 'OpenMed Lite', icon: HeartPulse, path: '/openmed', description: 'CRDT clinical conflict desk' },
+  { id: 'admin-core', label: 'Admin Core', icon: Building2, path: '/admin-core', description: 'B2G clearance console' },
 ];
 
 export function isDashboardNavItemActive(

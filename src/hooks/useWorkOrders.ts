@@ -36,14 +36,14 @@ const initialWorkOrders: WorkOrder[] = [
     estimatedCost: 120000,
     status: 'pending',
     createdAt: '2026-01-28',
-    description: 'Major solid waste accumulation blocking primary drainage channel. Risk of flooding to Monday Market area.'
+    description: 'Major solid waste accumulation blocking primary drainage channel. Risk of flooding to Ngadda corridor settlements.'
   },
   {
     id: '2',
     ticketId: '#WRK-2026-87',
     priority: 'high',
     issueType: 'Borehole Pump Failure',
-    location: 'Jere IDP Camp',
+    location: 'Jere LGA',
     estimatedCost: 45000,
     status: 'dispatched',
     createdAt: '2026-01-27',
@@ -55,7 +55,7 @@ const initialWorkOrders: WorkOrder[] = [
     ticketId: '#WRK-2026-86',
     priority: 'critical',
     issueType: 'Herder Trespass Alert',
-    location: 'Yelwata Sector',
+    location: 'Konduga',
     estimatedCost: 0,
     status: 'pending',
     createdAt: '2026-01-27',
@@ -66,19 +66,19 @@ const initialWorkOrders: WorkOrder[] = [
     ticketId: '#WRK-2026-85',
     priority: 'normal',
     issueType: 'Drainage Inspection',
-    location: 'Gwange Ward 3',
+    location: 'Gwange Ward',
     estimatedCost: 15000,
     status: 'resolved',
     createdAt: '2026-01-26',
     description: 'Routine quarterly inspection of drainage channels completed.',
-    assignedTo: 'BOSEPA Field Team'
+    assignedTo: 'Field Response Team'
   },
   {
     id: '5',
     ticketId: '#WRK-2026-84',
     priority: 'high',
     issueType: 'Borehole Repair',
-    location: 'Pulka Zone C',
+    location: 'Marte LGA',
     estimatedCost: 85000,
     status: 'dispatched',
     createdAt: '2026-01-25',
@@ -100,7 +100,7 @@ const initialWorkOrders: WorkOrder[] = [
 
 // Service providers for dispatching
 const serviceProviders = [
-  'BOSEPA Field Team',
+  'Field Response Team',
   'Musa Technical Services',
   'WaterAid Nigeria',
   'UNICEF Emergency Response',
@@ -207,21 +207,16 @@ export const issueTypeOptions = [
   { value: 'Water Contamination', label: 'Water Contamination' },
 ];
 
-// Location options for forms
+/** Borno 10-node pilot localities only (no out-of-scope LGAs). */
 export const locationOptions = [
   'Ngadda River Bridge',
-  'Monday Market',
-  'Gwange Ward 1',
-  'Gwange Ward 2', 
-  'Gwange Ward 3',
-  'Jere IDP Camp',
-  'Pulka Zone A',
-  'Pulka Zone B',
-  'Pulka Zone C',
-  'Yelwata Sector',
+  'Gwange Ward',
+  'Lagos Street',
   'Alau Dam Spillway',
-  'Maiduguri Central',
+  'Jere LGA',
   'Konduga',
-  'Bama',
-  'Gwoza LGA',
+  'Dikwa',
+  'Bama LGA',
+  'Marte LGA',
+  'Gwoza Valley',
 ];

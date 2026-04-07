@@ -1,10 +1,15 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { SensorHardwareType, SensorNode } from '@/types/hydrosentry';
 import { getWaterLevelSeverity } from '@/lib/sensorTelemetry';
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
 
 export interface ReadingPoint {
+  /** Epoch ms — used for chronological sort and numeric X-axis (avoids AM/PM wrap bugs). */
+  at: number;
+  /** Human-readable stamp for tooltips / fallbacks. */
   time: string;
   value: number;
 }
@@ -120,16 +125,26 @@ function buildHistories(
     if (!t) continue;
     const value =
       t === 'water_level' ? Number(r.water_level_cm) : Number(r.scalar_reading ?? 0);
-    const time = new Date(r.recorded_at).toLocaleTimeString([], {
+    const d = new Date(r.recorded_at);
+    const at = d.getTime();
+    if (Number.isNaN(at)) continue;
+    const time = d.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
     if (!out[r.sensor_node_id]) out[r.sensor_node_id] = [];
-    out[r.sensor_node_id].push({ time, value: Math.round(value * 10) / 10 });
+    out[r.sensor_node_id].push({
+      at,
+      time,
+      value: Math.round(value * 100) / 100,
+    });
   }
 
   for (const id of Object.keys(out)) {
     const arr = out[id];
+    arr.sort((a, b) => a.at - b.at);
     if (arr.length > 96) {
       out[id] = arr.slice(-96);
     }
@@ -174,6 +189,19 @@ async function fetchSensorNetwork(): Promise<{
 
 const QUERY_KEY = ['sensor-network'] as const;
 
+/** One Realtime channel for the whole app — multiple `useSensorNetwork()` mounts must not each call `.on()` on the same channel name after subscribe. */
+let telemetryRealtimeSubscribers = 0;
+let telemetryInvalidateTimer: ReturnType<typeof setTimeout> | null = null;
+let telemetryChannel: RealtimeChannel | null = null;
+
+function scheduleTelemetryInvalidate(queryClient: QueryClient) {
+  if (telemetryInvalidateTimer) clearTimeout(telemetryInvalidateTimer);
+  telemetryInvalidateTimer = setTimeout(() => {
+    telemetryInvalidateTimer = null;
+    void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+  }, 200);
+}
+
 const TELEMETRY_SIMULATOR_MS = 8_000;
 
 function simulateTelemetryRow(node: SensorNode): {
@@ -183,18 +211,33 @@ function simulateTelemetryRow(node: SensorNode): {
   node_status: SensorNode['node_status'];
   scalar_reading: number | null;
 } {
-  const drift = (Math.random() - 0.5) * 4;
-  const bat = Math.max(
-    2.85,
-    Math.min(3.25, node.battery_voltage + (Math.random() - 0.5) * 0.04),
-  );
-  const lowBat = bat < 3.0;
+  /** Small cm steps per insert — matches physical clearance rate in UI pulse audit. */
+  const drift = (Math.random() - 0.5) * 0.9;
+  if (node.node_status === 'offline') {
+    return {
+      sensor_node_id: node.id,
+      water_level_cm: node.type === 'water_level' ? node.water_level_cm : 0,
+      battery_voltage: 0,
+      node_status: 'offline',
+      scalar_reading: node.type === 'water_level' ? null : node.currentReading,
+    };
+  }
+  /** Online float ~3.30 V; low_battery ~3.07–3.12 V (matches seed + LiFePO₄ audit). */
+  let bat: number;
+  let status: SensorNode['node_status'];
+  if (node.node_status === 'low_battery') {
+    bat = Math.max(3.05, Math.min(3.1, node.battery_voltage + (Math.random() - 0.5) * 0.015));
+    status = 'low_battery';
+  } else {
+    bat = Math.max(3.28, Math.min(3.32, node.battery_voltage + (Math.random() - 0.5) * 0.03));
+    status = 'online';
+  }
   if (node.type === 'water_level') {
     return {
       sensor_node_id: node.id,
-      water_level_cm: Math.max(0, node.water_level_cm + drift),
+      water_level_cm: Math.max(155, Math.min(420, node.water_level_cm + drift)),
       battery_voltage: bat,
-      node_status: lowBat ? 'low_battery' : 'online',
+      node_status: status,
       scalar_reading: null,
     };
   }
@@ -202,7 +245,7 @@ function simulateTelemetryRow(node: SensorNode): {
     sensor_node_id: node.id,
     water_level_cm: 0,
     battery_voltage: bat,
-    node_status: lowBat ? 'low_battery' : 'online',
+    node_status: status,
     scalar_reading: Math.max(0, node.currentReading + drift),
   };
 }
@@ -216,40 +259,42 @@ function simulateTelemetryRow(node: SensorNode): {
  */
 export function useSensorNetwork() {
   const queryClient = useQueryClient();
-  const invalidateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const simulateTelemetry = import.meta.env.VITE_SIMULATE_TELEMETRY === 'true';
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return;
 
-    const scheduleRefetch = () => {
-      if (invalidateDebounceRef.current) clearTimeout(invalidateDebounceRef.current);
-      invalidateDebounceRef.current = setTimeout(() => {
-        invalidateDebounceRef.current = null;
-        void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      }, 200);
-    };
-
-    const channel = supabase
-      .channel('hydrosentry-telemetry')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'telemetry_readings' },
-        scheduleRefetch,
-      )
-      .subscribe((status, err) => {
-        if (import.meta.env.DEV && status === 'CHANNEL_ERROR') {
-          console.warn(
-            '[HydroSentry] Realtime channel error — charts still refresh on poll. Check that',
-            '`telemetry_readings` is in publication `supabase_realtime` (see supabase_schema.sql).',
-            err,
-          );
-        }
-      });
+    telemetryRealtimeSubscribers += 1;
+    if (telemetryRealtimeSubscribers === 1) {
+      telemetryChannel = supabase
+        .channel('hydrosentry-telemetry')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'telemetry_readings' },
+          () => scheduleTelemetryInvalidate(queryClient),
+        )
+        .subscribe((status, err) => {
+          if (import.meta.env.DEV && status === 'CHANNEL_ERROR') {
+            console.warn(
+              '[HydroSentry] Realtime channel error — charts still refresh on poll. Check that',
+              '`telemetry_readings` is in publication `supabase_realtime` (see supabase_schema.sql).',
+              err,
+            );
+          }
+        });
+    }
 
     return () => {
-      if (invalidateDebounceRef.current) clearTimeout(invalidateDebounceRef.current);
-      void supabase.removeChannel(channel);
+      telemetryRealtimeSubscribers -= 1;
+      if (telemetryRealtimeSubscribers > 0) return;
+      if (telemetryInvalidateTimer) {
+        clearTimeout(telemetryInvalidateTimer);
+        telemetryInvalidateTimer = null;
+      }
+      if (telemetryChannel) {
+        void supabase.removeChannel(telemetryChannel);
+        telemetryChannel = null;
+      }
     };
   }, [queryClient]);
 

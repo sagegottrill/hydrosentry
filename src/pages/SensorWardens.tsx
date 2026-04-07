@@ -72,22 +72,28 @@ function WardenCard({ warden }: { warden: SensorWarden }) {
                             style={{ width: `${(completedModules / totalModules) * 100}%` }}
                         />
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <ul className="mt-3 list-none space-y-2 p-0">
                         {warden.trainingModules.map((mod, i) => (
-                            <span
+                            <li
                                 key={i}
                                 className={cn(
-                                    'flex items-center rounded-md border px-2 py-1 text-xs font-medium',
+                                    'flex w-full items-start gap-2 rounded-md border px-2.5 py-1.5 text-left text-xs font-medium leading-snug',
                                     mod.completed
                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                        : 'bg-slate-50 text-slate-400 border-slate-200',
+                                        : 'bg-slate-50 text-slate-500 border-slate-200',
                                 )}
                             >
-                                {mod.completed ? <CheckCircle className="h-3 w-3 mr-1" /> : <div className="h-3 w-3 mr-1 rounded-full border border-slate-300" />}
-                                {mod.name}
-                            </span>
+                                <span className="mt-0.5 shrink-0" aria-hidden>
+                                    {mod.completed ? (
+                                        <CheckCircle className="h-3.5 w-3.5" />
+                                    ) : (
+                                        <span className="block h-3.5 w-3.5 rounded-full border border-slate-300" />
+                                    )}
+                                </span>
+                                <span className="min-w-0 flex-1">{mod.name}</span>
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                 </div>
 
                 {/* Stats Grid */}
@@ -129,20 +135,33 @@ export default function SensorWardens() {
             <div className="dashboard-shell">
                 <PageHeader variant="compact" icon={Users} title="Sensor wardens" />
 
-                <div className="stat-grid stat-grid-5">
-                    {[
-                        { label: 'Active wardens', value: stats.totalWardens, icon: Users, textCol: 'text-foreground', iconCol: 'text-primary' },
-                        { label: 'Training done', value: stats.trainingCompleted, icon: GraduationCap, textCol: 'text-emerald-700', iconCol: 'text-emerald-500' },
-                        { label: 'In training', value: stats.trainingInProgress, icon: Clock, textCol: 'text-amber-600', iconCol: 'text-amber-500' },
-                        { label: 'Nodes covered', value: `${stats.nodesCovered}/${stats.totalNodes}`, icon: Shield, textCol: 'text-foreground', iconCol: 'text-muted-foreground' },
-                        { label: 'Monthly budget', value: `₦${(stats.monthlyBudget / 1000).toFixed(0)}K`, icon: DollarSign, textCol: 'text-emerald-700', iconCol: 'text-emerald-500' },
-                    ].map((s, i) => (
+                <div className="stat-grid stat-grid-6">
+                    {(
+                        [
+                            { label: 'Active wardens', value: stats.totalWardens, icon: Users, textCol: 'text-foreground', iconCol: 'text-primary' },
+                            { label: 'Training done', value: stats.trainingCompleted, icon: GraduationCap, textCol: 'text-emerald-700', iconCol: 'text-emerald-500' },
+                            { label: 'In training', value: stats.trainingInProgress, icon: Clock, textCol: 'text-amber-600', iconCol: 'text-amber-500' },
+                            { label: 'Pending training', value: stats.trainingPending, icon: AlertCircle, textCol: 'text-slate-600', iconCol: 'text-slate-500' },
+                            { label: 'Nodes covered', value: `${stats.nodesCovered}/${stats.totalNodes}`, icon: Shield, textCol: 'text-foreground', iconCol: 'text-muted-foreground' },
+                            {
+                                label: 'Monthly budget',
+                                value: `₦${stats.monthlyBudget.toLocaleString()}`,
+                                sub: '10 wardens × ₦15,000',
+                                icon: DollarSign,
+                                textCol: 'text-emerald-700',
+                                iconCol: 'text-emerald-500',
+                            },
+                        ] as const
+                    ).map((s, i) => (
                         <div key={i} className="stat-tile">
                             <div className="stat-tile-head">
                                 <s.icon className={cn('h-4 w-4 shrink-0', s.iconCol)} strokeWidth={1.75} />
                                 <p className="stat-tile-label">{s.label}</p>
                             </div>
                             <p className={cn('stat-tile-value', s.textCol)}>{s.value}</p>
+                            {'sub' in s && s.sub ? (
+                                <p className="mt-0.5 text-2xs font-medium tabular-nums text-muted-foreground">{s.sub}</p>
+                            ) : null}
                         </div>
                     ))}
                 </div>

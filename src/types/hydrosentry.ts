@@ -10,8 +10,10 @@ export type BoreholeStatus = 'operational' | 'failure' | 'maintenance';
 
 export type RouteStatus = 'verified' | 'unverified' | 'blocked';
 
-/** Single-cell LiFePO₄ nominal voltage (hardware spec). */
+/** Single-cell LiFePO₄ reference voltages (field audit envelope). */
+export const LIFePO4_CELL_DEAD_V = 3.0;
 export const LIFePO4_CELL_NOMINAL_V = 3.2;
+export const LIFePO4_CELL_FULL_V = 3.65;
 
 /** Deployed edge stack (Borno field hardware). */
 export const EDGE_HARDWARE_SPEC = {
@@ -19,6 +21,8 @@ export const EDGE_HARDWARE_SPEC = {
   ultrasonicModel: 'JSN-SR04T',
   batteryChemistry: 'LiFePO₄',
   cellNominalVoltageV: LIFePO4_CELL_NOMINAL_V,
+  cellFullVoltageV: LIFePO4_CELL_FULL_V,
+  cellDeadVoltageV: LIFePO4_CELL_DEAD_V,
 } as const;
 
 /** ESP32 uplink + power state from the field. */
@@ -141,9 +145,10 @@ export interface DashboardMetrics {
     currency: string;
     trend: number; // percentage change
   };
-  boreholeFailures: {
-    count: number;
-    status: 'critical' | 'warning' | 'stable';
+  /** Human-in-the-loop: Orivon Edge Youth Guild field reports awaiting warden validation. */
+  guildFieldReports: {
+    activeCount: number;
+    subtitle: string;
   };
   conflictProbability: {
     percentage: number;

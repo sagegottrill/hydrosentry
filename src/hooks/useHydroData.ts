@@ -24,7 +24,7 @@ const mockRiskZones: RiskZone[] = [
     linkedSensorNodeId: 'SN-001',
     lastTelemetry: {
       water_level_cm: 228,
-      battery_voltage: 3.18,
+      battery_voltage: 3.30,
       node_status: 'online',
     },
   },
@@ -39,8 +39,8 @@ const mockRiskZones: RiskZone[] = [
     description: 'Recurring flood zone during heavy rains',
     linkedSensorNodeId: 'SN-002',
     lastTelemetry: {
-      water_level_cm: 182,
-      battery_voltage: 3.14,
+      water_level_cm: 198,
+      battery_voltage: 3.30,
       node_status: 'online',
     },
   },
@@ -55,8 +55,8 @@ const mockRiskZones: RiskZone[] = [
     description: 'Channel overflow risk area',
     linkedSensorNodeId: 'SN-003',
     lastTelemetry: {
-      water_level_cm: 118,
-      battery_voltage: 3.2,
+      water_level_cm: 172,
+      battery_voltage: 3.30,
       node_status: 'online',
     },
   }
@@ -104,8 +104,8 @@ export const DISPATCH_MOCK_ALERTS_INITIAL: Alert[] = [
     description: 'Severe solid waste accumulation blocking primary drainage channel',
     location: 'Monday Market Bridge',
     recommendation: 'Deploy Excavator',
-    actionLabel: 'Dispatch Crew',
-    estimatedCost: 50000,
+    actionLabel: 'Deploy Excavator',
+    estimatedCost: 350000,
     season: 'wet',
     zoneId: 'rz-001',
     createdAt: new Date().toISOString()
@@ -135,7 +135,34 @@ export const DISPATCH_MOCK_ALERTS_INITIAL: Alert[] = [
     season: 'wet',
     zoneId: 'rz-003',
     createdAt: new Date().toISOString()
-  }
+  },
+  {
+    id: 'alert-004',
+    priority: 'critical',
+    title: 'Anomalous Movement — Safe Corridor Route 12',
+    description:
+      'Machine learning model predicts high likelihood of route obstruction or armed movement in Yelwata Sector over the next 12 hours based on recent displacement data.',
+    location: 'Yelwata Sector',
+    recommendation: 'Coordinate Warden Guild field validation and corridor status reporting',
+    actionLabel: 'Alert Warden Guild (Validation)',
+    estimatedCost: 15000,
+    season: 'dry',
+    createdAt: new Date().toISOString()
+  },
+  /** Wet-season climate–security nexus (dual-crisis engine must surface in flood shield mode). */
+  {
+    id: 'alert-005',
+    priority: 'warning',
+    title: 'CRPD spike — herder transit near Konduga corridor',
+    description:
+      'Conflict risk probability index rose to 8.4/10 on pastoral movement patterns overlapping farm parcels east of Konduga. Coordinate joint agency–security assessment.',
+    location: 'Konduga',
+    recommendation: 'Activate ward focal mediation and corridor monitoring',
+    actionLabel: 'Alert Warden Guild (Validation)',
+    estimatedCost: 12000,
+    season: 'wet',
+    createdAt: new Date().toISOString()
+  },
 ];
 
 const mockAlerts = DISPATCH_MOCK_ALERTS_INITIAL;
@@ -188,9 +215,9 @@ const mockMetrics: DashboardMetrics = {
     currency: 'NGN',
     trend: 12
   },
-  boreholeFailures: {
-    count: 245,
-    status: 'critical'
+  guildFieldReports: {
+    activeCount: 14,
+    subtitle: 'Pending validation by Wardens',
   },
   conflictProbability: {
     percentage: 86,
@@ -214,14 +241,14 @@ export const sparklineData = {
     { day: 6, value: 28 },
     { day: 7, value: 28.8 }
   ],
-  boreholeFailures: [
-    { day: 1, value: 180 },
-    { day: 2, value: 195 },
-    { day: 3, value: 210 },
-    { day: 4, value: 225 },
-    { day: 5, value: 230 },
-    { day: 6, value: 240 },
-    { day: 7, value: 245 }
+  guildFieldReports: [
+    { day: 1, value: 8 },
+    { day: 2, value: 9 },
+    { day: 3, value: 10 },
+    { day: 4, value: 11 },
+    { day: 5, value: 12 },
+    { day: 6, value: 13 },
+    { day: 7, value: 14 },
   ],
   conflictProb: [
     { day: 1, value: 65 },

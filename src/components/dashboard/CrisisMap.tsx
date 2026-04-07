@@ -247,7 +247,7 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch, se
             ? `
           <div style="margin-top:10px;padding:10px;background:#f1f5f9;border-radius:8px;font-size:11px;line-height:1.5;">
             <p style="font-weight:800;color:#005587;margin:0 0 6px 0;text-transform:uppercase;letter-spacing:0.05em;">Edge · ${zone.linkedSensorNodeId}</p>
-            <p style="margin:0;"><span style="color:#64748b">JSN-SR04T depth:</span> <strong>${tel.water_level_cm} cm</strong></p>
+            <p style="margin:0;"><span style="color:#64748b">JSN-SR04T depth:</span> <strong>${tel.water_level_cm.toFixed(2)} cm</strong></p>
             <p style="margin:4px 0 0 0;"><span style="color:#64748b">LiFePO₄ (3.2 V nom.):</span> <strong>${tel.battery_voltage.toFixed(2)} V</strong> · <strong style="text-transform:capitalize">${tel.node_status.replace('_', ' ')}</strong></p>
           </div>
         `

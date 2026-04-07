@@ -116,9 +116,9 @@ const buildWardens = (): SensorWarden[] => [
         incidentsReported: 1, maintenanceCompleted: 1,
     },
     {
-        id: 'SW-009', name: 'Garba Umar', age: 26, gender: 'male',
-        location: 'Monguno', phone: '+234 803 XXX 1009',
-        assignedNodes: ['SN-009'], trainingStatus: 'completed',
+        id: 'SW-009', name: 'Abubakar Shehu', age: 26, gender: 'male',
+        location: 'Gwoza Valley Checkpoint', phone: '+234 803 XXX 1009',
+        assignedNodes: ['HS-GWOZA-012'], trainingStatus: 'completed',
         trainingModules: trainingModules.map(m => ({ name: m, completed: true })),
         onboardDate: '2026-02-15', lastCheckIn: '2026-03-06',
         stipendStatus: 'paid', monthlyStipend: 15000, totalPaid: 15000,
@@ -144,7 +144,8 @@ export function useSensorWardens() {
         trainingCompleted: wardens.filter(w => w.trainingStatus === 'completed').length,
         trainingInProgress: wardens.filter(w => w.trainingStatus === 'in_progress').length,
         trainingPending: wardens.filter(w => w.trainingStatus === 'pending').length,
-        nodesCovered: wardens.filter(w => w.trainingStatus !== 'pending').length,
+        /** Sum of assigned field nodes (10/10 when every warden holds one channel). */
+        nodesCovered: wardens.reduce((a, w) => a + w.assignedNodes.length, 0),
         totalNodes: 10,
         monthlyBudget: wardens.reduce((a, w) => a + w.monthlyStipend, 0),
         totalDisbursed: wardens.reduce((a, w) => a + w.totalPaid, 0),

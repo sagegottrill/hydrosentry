@@ -16,14 +16,14 @@ export function LiveIndicator({ pulsing = true, className, children }: LiveIndic
         className,
       )}
     >
-      <span className="relative flex h-2 w-2" aria-hidden>
+      <span className="relative flex h-2.5 w-2.5" aria-hidden>
         {pulsing ? (
           <>
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/35" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+            <span className="absolute inline-flex h-full w-full animate-ping-slow rounded-full bg-primary/30 motion-reduce:animate-none" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_0_1px_hsl(var(--card))] motion-reduce:animate-none animate-live-dot-breathe" />
           </>
         ) : (
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-muted-foreground/35" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-muted-foreground/40" />
         )}
       </span>
       {children}

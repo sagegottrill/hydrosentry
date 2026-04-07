@@ -46,6 +46,7 @@ export function DashboardSidebar({ collapsed, onToggle }: SidebarProps) {
         {dashboardNavItems.map((item) => {
           const active = isDashboardNavItemActive(location.pathname, location.search, item);
           const Icon = item.icon;
+          const isGuild = item.id === 'field-report';
 
           return (
             <button
@@ -70,7 +71,16 @@ export function DashboardSidebar({ collapsed, onToggle }: SidebarProps) {
                 )}
                 strokeWidth={1.75}
               />
-              {!collapsed && <span className="truncate">{item.label}</span>}
+              {!collapsed ? (
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="truncate">{item.label}</span>
+                  {isGuild ? (
+                    <span className="rounded border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-primary">
+                      Guild
+                    </span>
+                  ) : null}
+                </span>
+              ) : null}
             </button>
           );
         })}

@@ -1,8 +1,12 @@
-import { AlertTriangle, Send, Wrench, Bell, Droplets, Battery, Radio, Smartphone } from 'lucide-react';
+import { useState } from 'react';
+import { AlertTriangle, Send, Wrench, Bell, Droplets, Battery, Radio, Smartphone, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { Alert } from '@/types/hydrosentry';
 import { LIFePO4_CELL_NOMINAL_V } from '@/types/hydrosentry';
+import { formatAssetTag } from '@/lib/assetTags';
+import { formatFixed2 } from '@/lib/formatters';
 
 interface ActionDispatcherProps {
   alerts: Alert[];
@@ -15,7 +19,29 @@ interface ActionDispatcherProps {
  * baseline mock rows plus Supabase Realtime INSERT prepends (and a one-shot hydrate for
  * warden reports submitted while the dashboard was not mounted).
  */
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+}
+
 export function ActionDispatcher({ alerts, onDispatch, className }: ActionDispatcherProps) {
+  const [loadingAlertId, setLoadingAlertId] = useState<string | null>(null);
+
+  const handlePrimary = async (alert: Alert) => {
+    if (loadingAlertId) return;
+    setLoadingAlertId(alert.id);
+    try {
+      await sleep(500);
+      onDispatch(alert.id, alert.actionLabel);
+      const desc =
+        alert.actionLabel === 'Alert Technician'
+          ? 'Technician dispatch queued — Orivon Edge field response.'
+          : `${alert.actionLabel} — command logged.`;
+      toast.success('System Action Logged', { description: desc });
+    } finally {
+      setLoadingAlertId(null);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {
       style: 'currency',
@@ -64,7 +90,11 @@ export function ActionDispatcher({ alerts, onDispatch, className }: ActionDispat
             </div>
             Dispatch
           </h2>
-          <span className="rounded border border-primary/15 bg-primary/5 px-2 py-0.5 text-2xs font-medium text-primary">
+          <span className="inline-flex items-center gap-1.5 rounded border border-primary/20 bg-primary/5 px-2 py-0.5 text-2xs font-medium text-primary">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-primary/45 motion-safe:animate-ping-slow" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 motion-safe:animate-live-dot-breathe" />
+            </span>
             Live
           </span>
         </div>
@@ -96,7 +126,8 @@ export function ActionDispatcher({ alerts, onDispatch, className }: ActionDispat
                 key={alert.id}
                 className={cn(
                   'group dashboard-card p-4 transition-colors duration-200 hover:border-muted-foreground/15',
-                  (hydroCrit || wardenFieldCritical) && 'border-destructive/35 bg-destructive/[0.03]',
+                  (hydroCrit || wardenFieldCritical) &&
+                    'motion-safe:animate-critical-border-pulse border-destructive/40 bg-destructive/[0.03]',
                   battCrit && !hydroCrit && !wardenFieldCritical && 'border-amber-200/80 bg-amber-50/40',
                 )}
               >
@@ -169,12 +200,21 @@ export function ActionDispatcher({ alerts, onDispatch, className }: ActionDispat
                       />
                       <div>
                         <p className="font-bold uppercase tracking-wider text-slate-500">JSN-SR04T</p>
-                        <p className="font-extrabold tabular-nums text-slate-900">
-                          {tel.water_level_cm} cm
-                          {alert.sensorNodeId && (
-                            <span className="ml-1 font-mono text-[10px] text-slate-500">{alert.sensorNodeId}</span>
-                          )}
-                        </p>
+                        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                          <span className="font-extrabold tabular-nums text-slate-900">
+                            {formatFixed2(tel.water_level_cm)} cm
+                          </span>
+                          {alert.sensorNodeId ? (
+                            <>
+                              <span className="text-slate-300 select-none" aria-hidden>
+                                ·
+                              </span>
+                              <span className="font-mono text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                                {formatAssetTag(alert.sensorNodeId)}
+                              </span>
+                            </>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-start gap-2">
@@ -211,20 +251,24 @@ export function ActionDispatcher({ alerts, onDispatch, className }: ActionDispat
                 {/* Action Button */}
                 <Button
                   size="sm"
+                  disabled={loadingAlertId != null}
                   className={cn(
-                    'h-10 w-full rounded-lg text-xs font-semibold shadow-sm',
+                    'inline-flex h-10 w-full flex-wrap items-center justify-center gap-x-1.5 rounded-lg text-xs font-semibold shadow-sm',
                     alert.priority === 'critical'
                       ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
                       : 'bg-primary text-primary-foreground hover:bg-primary/90',
                   )}
-                  onClick={() => onDispatch(alert.id, alert.actionLabel)}
+                  onClick={() => void handlePrimary(alert)}
                 >
-                  {alert.actionLabel}
-                  {alert.estimatedCost && (
-                    <span className="ml-1.5 opacity-80 font-medium tracking-wide">
+                  {loadingAlertId === alert.id ? (
+                    <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+                  ) : null}
+                  <span className="min-w-0 text-center leading-snug">{alert.actionLabel}</span>
+                  {alert.estimatedCost != null && alert.estimatedCost > 0 ? (
+                    <span className="shrink-0 opacity-80 font-medium tracking-wide">
                       (Est. {formatCurrency(alert.estimatedCost)})
                     </span>
-                  )}
+                  ) : null}
                 </Button>
               </div>
             );

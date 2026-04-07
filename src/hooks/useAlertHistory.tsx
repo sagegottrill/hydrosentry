@@ -17,13 +17,17 @@ export interface AlertEvent {
     relativeTime: string;
     sensorId: string;
     sensorName: string;
-    type: 'flood_warning' | 'anomaly' | 'equipment_failure' | 'low_battery' | 'siren_activated';
+    type: 'flood_warning' | 'anomaly' | 'equipment_failure' | 'low_battery' | 'siren_activated' | 'conflict_signal';
     severity: 'critical' | 'warning' | 'info';
+    /** Optional headline (e.g. Conflict Engine / ops title); body stays in `message`. */
+    title?: string;
     message: string;
     smsDelivery?: {
         sent: number;
         delivered: number;
         failed: number;
+        /** In-transit / queued (explicit or implied); omit to derive from sent − delivered − failed. */
+        pending?: number;
     };
     sirenActivated: boolean;
     resolvedAt?: string;
@@ -64,7 +68,7 @@ function buildAlertHistory(): AlertEvent[] {
             id: 'AH-001', timestamp: '2026-03-06T18:42:00Z', relativeTime: '3 hours ago',
             sensorId: 'SN-004', sensorName: 'Alau Dam Monitor',
             type: 'flood_warning', severity: 'critical',
-            message: 'Water level exceeded critical threshold at 4.6m. Immediate evacuation advisory triggered.',
+            message: 'Water level exceeded critical threshold at 460 cm. Immediate evacuation advisory triggered.',
             smsDelivery: { sent: 847, delivered: 839, failed: 8 },
             sirenActivated: true, status: 'active',
         },
@@ -72,7 +76,7 @@ function buildAlertHistory(): AlertEvent[] {
             id: 'AH-002', timestamp: '2026-03-06T16:15:00Z', relativeTime: '5 hours ago',
             sensorId: 'SN-004', sensorName: 'Alau Dam Monitor',
             type: 'anomaly', severity: 'warning',
-            message: 'TinyML model detected anomalous rise pattern — 0.3m/hour sustained increase over 4-hour window.',
+            message: 'TinyML model detected anomalous rise pattern — 30 cm/hour sustained increase over 4-hour window.',
             smsDelivery: { sent: 215, delivered: 212, failed: 3 },
             sirenActivated: false, status: 'acknowledged',
         },
@@ -87,7 +91,7 @@ function buildAlertHistory(): AlertEvent[] {
             id: 'AH-004', timestamp: '2026-03-05T22:10:00Z', relativeTime: '1 day ago',
             sensorId: 'SN-001', sensorName: 'Ngadda Bridge Alpha',
             type: 'flood_warning', severity: 'warning',
-            message: 'Water level approaching warning threshold at 3.2m. Monitoring escalated.',
+            message: 'Water level approaching warning threshold at 320 cm. Monitoring escalated.',
             smsDelivery: { sent: 412, delivered: 408, failed: 4 },
             sirenActivated: false, status: 'resolved', resolvedAt: '2026-03-06T02:30:00Z', resolvedBy: 'System (auto)',
         },
@@ -102,7 +106,7 @@ function buildAlertHistory(): AlertEvent[] {
             id: 'AH-006', timestamp: '2026-03-04T18:00:00Z', relativeTime: '2 days ago',
             sensorId: 'SN-002', sensorName: 'Gwange Drainage Sensor',
             type: 'flood_warning', severity: 'critical',
-            message: 'Drainage overflow detected. Water level at 3.8m exceeded critical threshold.',
+            message: 'Drainage overflow detected. Water level at 380 cm exceeded critical threshold.',
             smsDelivery: { sent: 634, delivered: 628, failed: 6 },
             sirenActivated: true, status: 'resolved', resolvedAt: '2026-03-05T06:00:00Z', resolvedBy: 'Aisha Bukar',
         },
@@ -117,7 +121,7 @@ function buildAlertHistory(): AlertEvent[] {
             id: 'AH-008', timestamp: '2026-03-03T20:00:00Z', relativeTime: '3 days ago',
             sensorId: 'SN-007', sensorName: 'Dikwa Observation Post',
             type: 'flood_warning', severity: 'warning',
-            message: 'Gradual rise detected — 2.8m and climbing. Pre-emptive SMS advisory sent.',
+            message: 'Gradual rise detected — 280 cm and climbing. Pre-emptive SMS advisory sent.',
             smsDelivery: { sent: 318, delivered: 312, failed: 6 },
             sirenActivated: false, status: 'resolved', resolvedAt: '2026-03-04T08:00:00Z', resolvedBy: 'Abdullahi Mala',
         },
@@ -139,18 +143,22 @@ function buildAlertHistory(): AlertEvent[] {
         },
         {
             id: 'AH-011', timestamp: '2026-03-01T09:45:00Z', relativeTime: '5 days ago',
-            sensorId: 'SN-009', sensorName: 'Monguno Water Station',
+            sensorId: 'SN-007', sensorName: 'Dikwa Observation Post',
             type: 'low_battery', severity: 'info',
-            message: 'Battery at 35%. Scheduled maintenance flagged for next patrol.',
-            sirenActivated: false, status: 'resolved', resolvedAt: '2026-03-02T10:00:00Z', resolvedBy: 'Garba Umar',
+            message: 'Brief LiFePO₄ sag to ~3.09 V during storm window; recovered after solar input.',
+            sirenActivated: false, status: 'resolved', resolvedAt: '2026-03-02T10:00:00Z', resolvedBy: 'Abdullahi Mala',
         },
         {
             id: 'AH-012', timestamp: '2026-02-28T14:30:00Z', relativeTime: '6 days ago',
-            sensorId: 'SN-004', sensorName: 'Alau Dam Monitor',
-            type: 'flood_warning', severity: 'critical',
-            message: 'Dam spillway overflow risk — water level at 4.2m. Emergency coordination with BOSEPA initiated.',
-            smsDelivery: { sent: 1024, delivered: 1016, failed: 8 },
-            sirenActivated: true, status: 'resolved', resolvedAt: '2026-03-01T06:00:00Z', resolvedBy: 'Fatima Ali',
+            sensorId: 'HS-GWOZA-012', sensorName: 'Gwoza Valley Checkpoint',
+            type: 'conflict_signal', severity: 'critical',
+            title: 'Anomalous Movement Detected',
+            message:
+                'ML anomaly matched displacement signature on Safe Corridor Route 12. Warden Guild dispatched to validate. No armed threat confirmed.',
+            sirenActivated: false,
+            status: 'resolved',
+            resolvedAt: '2026-02-28T22:15:00Z',
+            resolvedBy: 'Youth Guild field lead',
         },
         {
             id: 'AH-013', timestamp: '2026-02-27T06:00:00Z', relativeTime: '7 days ago',
@@ -251,8 +259,9 @@ export function AlertHistoryProvider({ children }: { children: ReactNode }) {
                 sensorName: 'Alau Dam Monitor',
                 type: 'flood_warning',
                 severity: 'critical',
-                message: '⚡ LIVE — TinyML anomaly confirmed. Water level at 4.8m and rising. Autonomous SMS blast and siren activation triggered.',
-                smsDelivery: { sent: 847, delivered: 0, failed: 0 },
+                message:
+                    '⚡ LIVE — TinyML anomaly confirmed. Water level at 480 cm and rising. Autonomous SMS blast and siren activation triggered.',
+                smsDelivery: { sent: 847, delivered: 790, failed: 0, pending: 57 },
                 sirenActivated: true,
                 status: 'active',
             };

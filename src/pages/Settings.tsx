@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
+import { toast as sonnerToast } from 'sonner';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { PageHeader } from '@/components/dashboard/PageHeader';
@@ -48,10 +49,8 @@ export default function Settings() {
     const result = await saveSettings();
 
     if (result.success) {
-      toast({
-        title: "✓ Settings Saved",
-        description: "Your configuration has been updated successfully.",
-        className: "bg-emerald-50 text-emerald-800 border-emerald-200",
+      sonnerToast.success('System Action Logged', {
+        description: 'Settings saved — configuration updated.',
       });
     } else {
       toast({
@@ -243,7 +242,7 @@ export default function Settings() {
                   <MessageSquare className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <div className="min-w-0">
-                  <Label className="text-sm font-semibold text-foreground">SMS to BOSEPA</Label>
+                  <Label className="text-sm font-semibold text-foreground">SMS to command center</Label>
                   <p className="text-xs text-muted-foreground">Bulk SMS gateway</p>
                 </div>
               </div>
@@ -363,8 +362,10 @@ export default function Settings() {
         </div>
 
         <div className="py-4 text-center text-[0.6875rem] leading-relaxed text-muted-foreground">
-          <p>HydroSentry v2.1.0</p>
-          <p className="mt-0.5">© 2026 Borno State Emergency Management Agency (BOSEPA)</p>
+          <p>HydroSentry v1.2.4-MVP</p>
+          <p className="mx-auto mt-0.5 max-w-xl">
+            © 2026 Orivon Edge. Released under MIT Open-Source License.
+          </p>
         </div>
       </div>
     </DashboardLayout>

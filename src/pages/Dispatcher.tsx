@@ -8,7 +8,8 @@ import {
   CheckCircle,
   Filter,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -121,7 +122,11 @@ export default function Dispatcher() {
     return `₦${amount.toLocaleString()}`;
   };
 
-  const handleCreateTicket = () => {
+  const [busyKey, setBusyKey] = useState<string | null>(null);
+
+  const sleep = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
+
+  const handleCreateTicket = async () => {
     if (!newTicket.issueType || !newTicket.location || !newTicket.description) {
       toast({
         title: "Missing Fields",
@@ -131,68 +136,83 @@ export default function Dispatcher() {
       return;
     }
 
-    const order = createWorkOrder({
-      priority: newTicket.priority,
-      issueType: newTicket.issueType,
-      location: newTicket.location,
-      estimatedCost: parseInt(newTicket.estimatedCost) || 0,
-      description: newTicket.description,
-    });
+    setBusyKey('create');
+    try {
+      await sleep(500);
+      const order = createWorkOrder({
+        priority: newTicket.priority,
+        issueType: newTicket.issueType,
+        location: newTicket.location,
+        estimatedCost: parseInt(newTicket.estimatedCost) || 0,
+        description: newTicket.description,
+      });
 
-    toast({
-      title: "✓ Ticket Created",
-      description: `Work order ${order.ticketId} has been created.`,
-      className: "bg-emerald-50 text-emerald-800 border-emerald-200",
-    });
+      sonnerToast.success('System Action Logged', {
+        description: `Work order ${order.ticketId} created.`,
+      });
 
-    setNewTicket({
-      priority: 'normal',
-      issueType: '',
-      location: '',
-      estimatedCost: '',
-      description: '',
-    });
-    setIsCreateDialogOpen(false);
+      setNewTicket({
+        priority: 'normal',
+        issueType: '',
+        location: '',
+        estimatedCost: '',
+        description: '',
+      });
+      setIsCreateDialogOpen(false);
+    } finally {
+      setBusyKey(null);
+    }
   };
 
-  const handleDispatch = (orderId: string) => {
-    const provider = dispatchWorkOrder(orderId);
-    const order = workOrders.find(o => o.id === orderId);
-
-    toast({
-      title: "✓ Team Dispatched",
-      description: `${order?.ticketId} assigned to ${provider}`,
-      className: "bg-emerald-50 text-emerald-800 border-emerald-200",
-    });
-    setSelectedOrder(null);
+  const handleDispatch = async (orderId: string) => {
+    setBusyKey(`dispatch-${orderId}`);
+    try {
+      await sleep(500);
+      const provider = dispatchWorkOrder(orderId);
+      const order = workOrders.find(o => o.id === orderId);
+      sonnerToast.success('System Action Logged', {
+        description: `${order?.ticketId ?? 'Order'} assigned to ${provider}.`,
+      });
+      setSelectedOrder(null);
+    } finally {
+      setBusyKey(null);
+    }
   };
 
-  const handleResolve = (orderId: string) => {
-    resolveWorkOrder(orderId);
-    const order = workOrders.find(o => o.id === orderId);
-
-    toast({
-      title: "✓ Issue Resolved",
-      description: `${order?.ticketId} marked as resolved.`,
-      className: "bg-emerald-50 text-emerald-800 border-emerald-200",
-    });
-    setSelectedOrder(null);
+  const handleResolve = async (orderId: string) => {
+    setBusyKey(`resolve-${orderId}`);
+    try {
+      await sleep(500);
+      resolveWorkOrder(orderId);
+      const order = workOrders.find(o => o.id === orderId);
+      sonnerToast.success('System Action Logged', {
+        description: `${order?.ticketId ?? 'Order'} marked resolved.`,
+      });
+      setSelectedOrder(null);
+    } finally {
+      setBusyKey(null);
+    }
   };
 
-  const handleDelete = (orderId: string) => {
-    const order = workOrders.find(o => o.id === orderId);
-    deleteWorkOrder(orderId);
-
-    toast({
-      title: "Ticket Deleted",
-      description: `${order?.ticketId} has been removed.`,
-    });
-    setSelectedOrder(null);
+  const handleDelete = async (orderId: string) => {
+    setBusyKey(`delete-${orderId}`);
+    try {
+      await sleep(500);
+      const order = workOrders.find(o => o.id === orderId);
+      deleteWorkOrder(orderId);
+      sonnerToast.success('System Action Logged', {
+        description: `${order?.ticketId ?? 'Ticket'} removed from queue.`,
+      });
+      setSelectedOrder(null);
+    } finally {
+      setBusyKey(null);
+    }
   };
 
   return (
     <DashboardLayout>
-      <div className="dashboard-shell">
+      <div className="dashboard-overview-root mx-auto max-w-[1920px]">
+        <div className="dashboard-page-body">
         <PageHeader
           variant="compact"
           icon={ClipboardList}
@@ -296,8 +316,19 @@ export default function Dispatcher() {
                 <DialogClose asChild>
                   <Button variant="outline">Cancel</Button>
                 </DialogClose>
-                <Button onClick={handleCreateTicket} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  Create ticket
+                <Button
+                  onClick={() => void handleCreateTicket()}
+                  disabled={busyKey != null}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  {busyKey === 'create' ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Creating…
+                    </>
+                  ) : (
+                    'Create ticket'
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -305,7 +336,7 @@ export default function Dispatcher() {
           }
         />
 
-        <div className="stat-grid">
+        <div className="stat-grid shrink-0">
           <div
             className={cn(
               'stat-tile cursor-pointer transition-colors hover:bg-muted/25',
@@ -357,8 +388,8 @@ export default function Dispatcher() {
           </div>
         </div>
 
-        <div className="dashboard-card overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 p-4 sm:p-5">
+        <div className="dashboard-card flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border/50 p-4 sm:p-5">
             <h2 className="text-lg font-semibold tracking-tight text-foreground">
               {filterStatus === 'all' ? 'All tickets' : `${statusConfig[filterStatus].label} orders`}
               <span className="ml-2 rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
@@ -396,18 +427,32 @@ export default function Dispatcher() {
               </DropdownMenu>
             </div>
           </div>
-          <div className="p-0">
-            <div className="table-scroll overflow-x-auto">
-              <Table>
+          <div className="min-h-0 flex-1 p-0">
+            <div className="panel-scroll h-full min-h-0 overflow-auto overscroll-y-contain">
+              <Table className="min-w-[52rem] table-fixed">
                 <TableHeader className="sticky top-0 z-[1] bg-muted/40 backdrop-blur-sm">
                   <TableRow className="border-b border-border">
-                    <TableHead className="w-[120px] text-xs font-medium text-muted-foreground">Ticket ID</TableHead>
-                    <TableHead className="w-[100px] text-xs font-medium text-muted-foreground">Priority</TableHead>
-                    <TableHead className="text-xs font-medium text-muted-foreground">Issue type</TableHead>
-                    <TableHead className="text-xs font-medium text-muted-foreground">Location</TableHead>
-                    <TableHead className="w-[100px] text-xs font-medium text-muted-foreground">Est. cost</TableHead>
-                    <TableHead className="w-[120px] text-xs font-medium text-muted-foreground">Status</TableHead>
-                    <TableHead className="w-[100px] pr-6 text-right text-xs font-medium text-muted-foreground">Action</TableHead>
+                    <TableHead className="w-[8.5rem] px-4 py-2 text-left align-middle text-xs font-medium whitespace-nowrap text-muted-foreground">
+                      Ticket ID
+                    </TableHead>
+                    <TableHead className="w-[6.5rem] px-4 py-2 text-left align-middle text-xs font-medium whitespace-nowrap text-muted-foreground">
+                      Priority
+                    </TableHead>
+                    <TableHead className="min-w-0 px-4 py-2 text-left align-middle text-xs font-medium text-muted-foreground">
+                      Issue type
+                    </TableHead>
+                    <TableHead className="min-w-0 px-4 py-2 text-left align-middle text-xs font-medium text-muted-foreground">
+                      Location
+                    </TableHead>
+                    <TableHead className="w-[6.5rem] px-4 py-2 text-left align-middle text-xs font-medium whitespace-nowrap text-muted-foreground">
+                      Est. cost
+                    </TableHead>
+                    <TableHead className="w-[7.5rem] px-4 py-2 text-left align-middle text-xs font-medium whitespace-nowrap text-muted-foreground">
+                      Status
+                    </TableHead>
+                    <TableHead className="w-[6.5rem] px-4 py-2 pr-6 text-right align-middle text-xs font-medium whitespace-nowrap text-muted-foreground">
+                      Action
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -424,21 +469,29 @@ export default function Dispatcher() {
                       const StatusIcon = status.icon;
 
                       return (
-                        <TableRow key={order.id} className="border-b border-border/60 hover:bg-muted/30">
-                          <TableCell className="font-mono text-sm font-medium text-foreground">
+                        <TableRow
+                          key={order.id}
+                          data-state={selectedOrder?.id === order.id ? 'selected' : undefined}
+                          className={cn(
+                            'cursor-pointer border-b border-border/60 hover:bg-muted/30',
+                            selectedOrder?.id === order.id && 'bg-primary/[0.06] ring-2 ring-inset ring-primary/30',
+                          )}
+                          onClick={() => setSelectedOrder(order)}
+                        >
+                          <TableCell className="px-4 py-2 font-mono text-sm font-medium text-foreground">
                             {order.ticketId}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-4 py-2 align-middle">
                             <span className={cn('rounded-md border px-2 py-0.5 text-xs font-medium', priority.className)}>
                               {priority.label}
                             </span>
                           </TableCell>
-                          <TableCell className="font-medium text-foreground">{order.issueType}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{order.location}</TableCell>
-                          <TableCell className="font-medium text-foreground">
+                          <TableCell className="px-4 py-2 font-medium text-foreground">{order.issueType}</TableCell>
+                          <TableCell className="px-4 py-2 text-sm text-muted-foreground">{order.location}</TableCell>
+                          <TableCell className="px-4 py-2 font-medium tabular-nums text-foreground">
                             {formatCurrency(order.estimatedCost)}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-4 py-2 align-middle">
                             <span className={cn(
                               'inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium',
                               status.className
@@ -447,13 +500,14 @@ export default function Dispatcher() {
                               {status.label}
                             </span>
                           </TableCell>
-                          <TableCell className="text-right pr-4">
+                          <TableCell className="px-4 py-2 pr-6 text-right align-middle">
                             <Dialog>
                               <DialogTrigger asChild>
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     setSelectedOrder(order);
                                     sonnerToast.message('Work order', {
                                       description: `${order.ticketId} — detail panel opened.`,
@@ -508,18 +562,28 @@ export default function Dispatcher() {
                                   {order.status === 'pending' && (
                                     <Button
                                       className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-                                      onClick={() => handleDispatch(order.id)}
+                                      disabled={busyKey != null}
+                                      onClick={() => void handleDispatch(order.id)}
                                     >
-                                      <AlertTriangle className="h-4 w-4 mr-2" />
+                                      {busyKey === `dispatch-${order.id}` ? (
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                      ) : (
+                                        <AlertTriangle className="h-4 w-4 mr-2" />
+                                      )}
                                       Dispatch Team
                                     </Button>
                                   )}
                                   {order.status === 'dispatched' && (
                                     <Button
                                       className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
-                                      onClick={() => handleResolve(order.id)}
+                                      disabled={busyKey != null}
+                                      onClick={() => void handleResolve(order.id)}
                                     >
-                                      <CheckCircle className="h-4 w-4 mr-2" />
+                                      {busyKey === `resolve-${order.id}` ? (
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                      ) : (
+                                        <CheckCircle className="h-4 w-4 mr-2" />
+                                      )}
                                       Mark Resolved
                                     </Button>
                                   )}
@@ -527,9 +591,14 @@ export default function Dispatcher() {
                                     variant="outline"
                                     size="icon"
                                     className="text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700"
-                                    onClick={() => handleDelete(order.id)}
+                                    disabled={busyKey != null}
+                                    onClick={() => void handleDelete(order.id)}
                                   >
-                                    <Trash2 className="h-4 w-4" />
+                                    {busyKey === `delete-${order.id}` ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Trash2 className="h-4 w-4" />
+                                    )}
                                   </Button>
                                 </div>
                               </DialogContent>
@@ -543,6 +612,7 @@ export default function Dispatcher() {
               </Table>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </DashboardLayout>

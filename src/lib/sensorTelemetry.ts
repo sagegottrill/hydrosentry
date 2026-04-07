@@ -1,21 +1,45 @@
 import type { Alert, Season, SensorNode } from '@/types/hydrosentry';
-import { LIFePO4_CELL_NOMINAL_V } from '@/types/hydrosentry';
+import { LIFePO4_CELL_DEAD_V, LIFePO4_CELL_FULL_V, LIFePO4_CELL_NOMINAL_V } from '@/types/hydrosentry';
+import { formatAssetTag } from '@/lib/assetTags';
+import { formatFixed2 } from '@/lib/formatters';
 
 export type WaterLevelSeverity = 'normal' | 'warning' | 'critical' | 'n/a';
 
-/** Linear UI scale: 3.2 V = full, 0 V = empty (offline). */
+/** SoC-style % along LiFePO₄ envelope: dead ≤3.0 V → 0%, full ~3.65 V → 100%. */
 export function batteryVoltageToHealthPercent(voltage: number): number {
   if (voltage <= 0) return 0;
-  return Math.min(100, Math.round((voltage / LIFePO4_CELL_NOMINAL_V) * 1000) / 10);
+  const span = LIFePO4_CELL_FULL_V - LIFePO4_CELL_DEAD_V;
+  const pct = ((voltage - LIFePO4_CELL_DEAD_V) / span) * 100;
+  return Math.min(100, Math.max(0, Math.round(pct * 10) / 10));
 }
 
-export function getWaterLevelSeverity(node: SensorNode): WaterLevelSeverity {
+/**
+ * JSN-SR04T reports distance **down** to the water surface (cm). Flood = **smaller** distance.
+ * Thresholds are minimum safe clearance: below `criticalThreshold` → critical, below `warningThreshold` → warning
+ * (with criticalThreshold < warningThreshold).
+ */
+export function getWaterLevelSeverity(
+  node: SensorNode,
+  floors?: { warning: number; critical: number },
+): WaterLevelSeverity {
   if (node.type !== 'water_level') return 'n/a';
   if (node.node_status === 'offline') return 'n/a';
   const cm = node.water_level_cm;
-  if (cm >= node.criticalThreshold) return 'critical';
-  if (cm >= node.warningThreshold) return 'warning';
+  const crit = floors?.critical ?? node.criticalThreshold;
+  const warn = floors?.warning ?? node.warningThreshold;
+  if (cm <= crit) return 'critical';
+  if (cm <= warn) return 'warning';
   return 'normal';
+}
+
+/** SoC % for UI; low_battery rows stay &lt;20% when V is on the discharge cliff (≈3.05–3.10 V). */
+export function displayCellHealthPercent(node: SensorNode): number | null {
+  if (node.node_status === 'offline') return null;
+  const pct = batteryVoltageToHealthPercent(node.battery_voltage);
+  if (node.node_status === 'low_battery') {
+    return Math.min(19, Math.round(pct * 10) / 10);
+  }
+  return Math.round(pct * 10) / 10;
 }
 
 /** Combined card / map emphasis: connectivity first, then flood risk. */
@@ -46,17 +70,18 @@ export function buildTelemetryAlerts(nodes: SensorNode[]): Alert[] {
     const wl = getWaterLevelSeverity(node);
 
     if (node.node_status === 'low_battery') {
+      const tag = formatAssetTag(node.publicCode ?? node.id);
       out.push({
         id: `tel-${node.id}-battery`,
         priority: 'warning',
         title: `Low LiFePO₄ cell — ${node.name}`,
-        description: `Node ${node.id} reports ${node.battery_voltage.toFixed(2)} V (nominal ${LIFePO4_CELL_NOMINAL_V} V). Dispatch warden for battery swap or charging before uplink loss.`,
+        description: `Node ${tag} reports ${formatFixed2(node.battery_voltage)} V (nominal ${LIFePO4_CELL_NOMINAL_V} V). Dispatch warden for battery swap before discharge cliff (3.0V).`,
         location: node.location,
         recommendation: 'Schedule field visit — battery service',
         actionLabel: 'Alert Warden',
         estimatedCost: 12000,
         season,
-        sensorNodeId: node.id,
+        sensorNodeId: node.publicCode ?? node.id,
         telemetry: {
           water_level_cm: node.water_level_cm,
           battery_voltage: node.battery_voltage,
@@ -68,17 +93,18 @@ export function buildTelemetryAlerts(nodes: SensorNode[]): Alert[] {
     }
 
     if (node.node_status === 'offline') {
+      const tag = formatAssetTag(node.publicCode ?? node.id);
       out.push({
         id: `tel-${node.id}-offline`,
         priority: 'critical',
         title: `Sensor offline — ${node.name}`,
-        description: `No recent uplink from ${node.id}. Last known water level ${node.water_level_cm} cm. Verify ESP32 power, antenna, and mesh relay.`,
+        description: `No recent uplink from ${tag}. Last known water level ${formatFixed2(node.water_level_cm)} cm. Verify ESP32 power, antenna, and mesh relay.`,
         location: node.location,
         recommendation: 'Deploy maintenance crew — restore uplink',
         actionLabel: 'Dispatch Crew',
         estimatedCost: 35000,
         season,
-        sensorNodeId: node.id,
+        sensorNodeId: node.publicCode ?? node.id,
         telemetry: {
           water_level_cm: node.water_level_cm,
           battery_voltage: node.battery_voltage,
@@ -90,18 +116,19 @@ export function buildTelemetryAlerts(nodes: SensorNode[]): Alert[] {
     }
 
     if (wl === 'critical') {
+      const tag = formatAssetTag(node.publicCode ?? node.id);
       out.push({
         id: `tel-${node.id}-water-crit`,
         priority: 'critical',
         title: `Critical water depth — ${node.name}`,
-        description: `JSN-SR04T reports ${node.water_level_cm} cm (critical ≥ ${node.criticalThreshold} cm). Immediate flood / drainage response required.`,
+        description: `JSN-SR04T clearance ${formatFixed2(node.water_level_cm)} cm on ${tag} is at or below the critical floor (${formatFixed2(node.criticalThreshold)} cm). Immediate flood / drainage response required.`,
         location: node.location,
         recommendation: 'Emergency clearance and flow diversion',
         actionLabel: 'Dispatch Crew',
         estimatedCost: 85000,
         season,
         zoneId: undefined,
-        sensorNodeId: node.id,
+        sensorNodeId: node.publicCode ?? node.id,
         telemetry: {
           water_level_cm: node.water_level_cm,
           battery_voltage: node.battery_voltage,
@@ -115,13 +142,13 @@ export function buildTelemetryAlerts(nodes: SensorNode[]): Alert[] {
         id: `tel-${node.id}-water-warn`,
         priority: 'warning',
         title: `Elevated water level — ${node.name}`,
-        description: `Ultrasonic reading ${node.water_level_cm} cm exceeds warning threshold (${node.warningThreshold} cm).`,
+        description: `Ultrasonic reading ${formatFixed2(node.water_level_cm)} cm on ${formatAssetTag(node.publicCode ?? node.id)} is below warning clearance (${formatFixed2(node.warningThreshold)} cm). Imminent overflow risk.`,
         location: node.location,
         recommendation: 'Preventive inspection and channel check',
         actionLabel: 'Schedule Inspection',
         estimatedCost: 28000,
         season,
-        sensorNodeId: node.id,
+        sensorNodeId: node.publicCode ?? node.id,
         telemetry: {
           water_level_cm: node.water_level_cm,
           battery_voltage: node.battery_voltage,

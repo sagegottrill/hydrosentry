@@ -24,12 +24,7 @@ import { ScrollReveal } from '@/components/ui/ScrollReveal';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ReactLenis } from '@studio-freight/react-lenis';
 
-function TopBarClock() {
-    const [time, setTime] = useState(new Date());
-    useEffect(() => {
-        const iv = setInterval(() => setTime(new Date()), 1000);
-        return () => clearInterval(iv);
-    }, []);
+function TopBarStatus() {
     return (
         <div className="hidden text-[11px] font-medium text-slate-500 sm:flex sm:items-center sm:gap-3">
             <span className="flex items-center gap-1.5 text-emerald-700">
@@ -40,7 +35,15 @@ function TopBarClock() {
                 Pilot program
             </span>
             <span className="text-slate-300">·</span>
-            <span>{time.toLocaleTimeString('en-US', { hour12: false })} WAT</span>
+            <span className="flex items-center gap-1.5 text-slate-700">
+                <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-60" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-sky-500" />
+                </span>
+                <span className="font-semibold tracking-tight text-slate-800 motion-safe:animate-pulse">
+                    Status: Mesh Operational
+                </span>
+            </span>
             <span className="text-slate-300">·</span>
             <span>Borno State</span>
         </div>
@@ -48,14 +51,15 @@ function TopBarClock() {
 }
 
 const MARQUEE_ITEMS = [
-    'Open hardware',
+    'The Sahel Resilience Stack',
+    'Green GIS · HydroSentry',
+    '10-node pilot',
     'LoRaWAN mesh',
+    'TinyML edge inference',
+    'LiFePO₄ batteries · extreme heat',
+    '50+ local youth contributors',
+    'MIT Open-Source License',
     'Lake Chad Basin',
-    'Offline-first',
-    'TinyML at the edge',
-    'Data sovereignty',
-    'Youth-maintained',
-    'BOSEPA coordination',
 ];
 
 function MarqueeStrip() {
@@ -144,9 +148,9 @@ export default function Landing() {
                 <div className="border-b border-slate-200/80 bg-white">
                     <div className="mx-auto flex h-9 max-w-7xl items-center justify-end px-3 sm:justify-between sm:px-6">
                         <p className="hidden min-w-0 flex-1 truncate text-[11px] font-medium tracking-wide text-slate-500 sm:block">
-                            Open-source edge infrastructure · Lake Chad Basin
+                            The Sahel Resilience Stack · Green GIS (HydroSentry) · Lake Chad Basin
                         </p>
-                        <TopBarClock />
+                        <TopBarStatus />
                     </div>
                 </div>
 
@@ -186,7 +190,7 @@ export default function Landing() {
                                 variant="outline"
                                 size="sm"
                                 className="hidden h-9 border-slate-200 text-slate-700 sm:inline-flex"
-                                onClick={() => navigate('/demo')}
+                                onClick={() => navigate('/dashboard')}
                             >
                                 Demo
                             </Button>
@@ -196,7 +200,7 @@ export default function Landing() {
                                 onClick={() => navigate('/login')}
                             >
                                 <span className="sm:hidden">Login</span>
-                                <span className="hidden sm:inline">Operator login</span>
+                                <span className="hidden sm:inline">Dispatcher login</span>
                             </Button>
                         </div>
                     </div>
@@ -216,22 +220,26 @@ export default function Landing() {
                                 <div className="mb-6 inline-flex max-w-full items-center gap-2 rounded-full border border-sky-200/80 bg-sky-50/90 px-3 py-1.5 text-sky-900 shadow-sm sm:px-3.5">
                                     <Shield className="h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={1.75} />
                                     <span className="text-[10px] font-semibold uppercase leading-snug tracking-[0.12em] sm:text-[11px] sm:tracking-[0.14em]">
-                                        Open infrastructure · Climate, peace & security
+                                        Green GIS data collector · Climate resilience
                                     </span>
                                 </div>
                             </ScrollReveal>
 
                             <ScrollReveal animation="fade-up" delay={0.08}>
                                 <h1 className="break-words text-4xl font-semibold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl lg:text-[3.25rem] lg:leading-[1.06]">
-                                    Open-Source Edge Infrastructure for{' '}
+                                    <span className="text-primary">Green GIS</span> Edge Collector for{' '}
                                     <span className="text-primary">Climate Resilience</span>
                                 </h1>
                             </ScrollReveal>
 
                             <ScrollReveal animation="fade-up" delay={0.15}>
                                 <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
-                                    HydroSentry is the flagship GIS module of The Sahel Resilience Stack—a localized, offline-first early warning blueprint protecting the Lake Chad Basin.
-                                    Built entirely on open hardware and open data, maintained by local youth.
+                                    HydroSentry is the <strong className="font-semibold text-slate-800">Green GIS</strong> field data collector for climate resilience inside{' '}
+                                    <strong className="font-semibold text-slate-800">The Sahel Resilience Stack</strong>—a{' '}
+                                    <strong className="font-semibold text-slate-800">10-node pilot</strong> topology (not a national hardware rollout) with a roadmap to{' '}
+                                    <strong className="font-semibold text-slate-800">50+ local youth contributors</strong>. Field sustainment is led by the{' '}
+                                    <strong className="font-semibold text-slate-800">Orivon Edge Youth Guild</strong> and the{' '}
+                                    <strong className="font-semibold text-slate-800">Youth Warden Guild</strong> programs. Open hardware, open data, MIT-licensed patterns.
                                 </p>
                             </ScrollReveal>
 
@@ -240,7 +248,7 @@ export default function Landing() {
                                     <Button
                                         size="lg"
                                         className="h-12 rounded-xl bg-primary px-7 text-base font-semibold shadow-lg shadow-primary/15 hover:bg-primary/90"
-                                        onClick={() => navigate('/demo')}
+                                        onClick={() => navigate('/dashboard')}
                                     >
                                         Access live demo
                                         <ArrowRight className="ml-2 h-5 w-5" />
@@ -265,12 +273,12 @@ export default function Landing() {
                     <div className="mx-auto grid max-w-7xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         <button
                             type="button"
-                            onClick={() => navigate('/demo')}
+                            onClick={() => navigate('/dashboard')}
                             className="group flex flex-col rounded-2xl bg-primary p-6 text-left text-primary-foreground shadow-xl shadow-primary/20 transition hover:bg-primary/95"
                         >
                             <LayoutDashboard className="mb-4 h-8 w-8 opacity-90" strokeWidth={1.5} />
                             <p className="text-lg font-semibold">Live demo</p>
-                            <p className="mt-1 text-sm text-primary-foreground/85">Map, telemetry UI, pilot simulation</p>
+                            <p className="mt-1 text-sm text-primary-foreground/85">Map, telemetry UI, 10-node pilot simulation</p>
                             <span className="mt-4 inline-flex items-center text-sm font-semibold">
                                 Open console
                                 <ArrowUpRight className="ml-1 h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -284,7 +292,7 @@ export default function Landing() {
                         >
                             <Github className="mb-4 h-8 w-8 text-slate-800" strokeWidth={1.5} />
                             <p className="text-lg font-semibold text-slate-900">Repository</p>
-                            <p className="mt-1 text-sm text-slate-600">Firmware, schema, and app source</p>
+                            <p className="mt-1 text-sm text-slate-600">Firmware, schema, and app source (MIT Open-Source License)</p>
                             <span className="mt-4 inline-flex items-center text-sm font-semibold text-primary">
                                 GitHub
                                 <ArrowUpRight className="ml-1 h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -297,7 +305,7 @@ export default function Landing() {
                         >
                             <Cpu className="mb-4 h-8 w-8 text-slate-800" strokeWidth={1.5} />
                             <p className="text-lg font-semibold text-slate-900">Architecture</p>
-                            <p className="mt-1 text-sm text-slate-600">Sense, process, alert — offline-first</p>
+                            <p className="mt-1 text-sm text-slate-600">LoRaWAN mesh · TinyML · LiFePO₄ — offline-first</p>
                             <span className="mt-4 inline-flex items-center text-sm font-semibold text-primary">
                                 How it works
                                 <ArrowUpRight className="ml-1 h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -309,8 +317,8 @@ export default function Landing() {
                             className="group flex flex-col rounded-2xl border border-slate-200/90 bg-white p-6 text-left shadow-sm transition hover:border-slate-300 hover:shadow-md"
                         >
                             <Shield className="mb-4 h-8 w-8 text-slate-800" strokeWidth={1.5} />
-                            <p className="text-lg font-semibold text-slate-900">Operator access</p>
-                            <p className="mt-1 text-sm text-slate-600">Secure login for field coordination</p>
+                            <p className="text-lg font-semibold text-slate-900">Dispatcher access</p>
+                            <p className="mt-1 text-sm text-slate-600">Secure login for command-center coordination</p>
                             <span className="mt-4 inline-flex items-center text-sm font-semibold text-primary">
                                 Sign in
                                 <ArrowUpRight className="ml-1 h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -328,9 +336,9 @@ export default function Landing() {
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             {[
                                 {
-                                    value: '10 Simulated Nodes',
-                                    label: 'Phase 1 Network Topology',
-                                    sub: '',
+                                    value: '10-node pilot',
+                                    label: 'Hardware topology (bounded scope)',
+                                    sub: 'Pilot-scale deployment — we do not overstate national field coverage.',
                                     icon: Radio,
                                 },
                                 {
@@ -429,8 +437,10 @@ export default function Landing() {
                                     Sense, process, alert. Offline-first by design.
                                 </h2>
                                 <p className="mt-5 text-base leading-relaxed text-slate-600 sm:text-lg">
-                                    HydroSentry&apos;s early warning pipeline is engineered to run when the cloud cannot — maximum resilience in
-                                    austere environments, with{' '}
+                                    HydroSentry&apos;s <strong className="font-semibold text-slate-800">Green GIS</strong> pipeline pairs{' '}
+                                    <strong className="font-semibold text-slate-800">LoRaWAN mesh</strong> backhaul with{' '}
+                                    <strong className="font-semibold text-slate-800">TinyML edge inference</strong> on-node and{' '}
+                                    <strong className="font-semibold text-slate-800">LiFePO₄ batteries</strong> engineered for extreme Sahel heat—built to run when the cloud cannot, with{' '}
                                     <strong className="font-semibold text-slate-800">data sovereignty</strong> for the communities it serves.
                                 </p>
                                 <div className="mt-8 rounded-2xl border border-slate-200/90 bg-slate-50/90 p-6 text-left text-sm leading-relaxed text-slate-600 sm:p-8 sm:text-base">
@@ -460,14 +470,14 @@ export default function Landing() {
                                     {
                                         step: '02',
                                         icon: Cpu,
-                                        title: 'Edge processing',
-                                        desc: 'Embedded TinyML models continuously analyze flow patterns on the node, detecting dangerous anomalies locally in milliseconds.',
+                                        title: 'TinyML edge inference',
+                                        desc: 'Embedded TinyML models run on-device edge inference on flow patterns, flagging dangerous anomalies locally in milliseconds.',
                                     },
                                     {
                                         step: '03',
                                         icon: Zap,
-                                        title: 'Autonomous dispatch',
-                                        desc: 'Upon threat detection, nodes autonomously trigger local sirens and utilize LoRaWAN gateways to dispatch SMS alerts bypassing internet outages.',
+                                        title: 'LoRaWAN mesh dispatch',
+                                        desc: 'Upon threat detection, nodes trigger local sirens and route alerts across a LoRaWAN mesh to gateways for SMS dispatch—bypassing internet outages.',
                                     },
                                 ].map((item, i) => (
                                     <div
@@ -496,13 +506,15 @@ export default function Landing() {
                                 Core capabilities
                             </span>
                             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-[2.5rem] lg:leading-tight">
-                                The Warden Guild: data sovereignty stewards on the ground.
+                                Orivon Edge Youth Guild &amp; Youth Warden Guild: local maintainers on the ground.
                             </h2>
                             <p className="mt-6 text-base leading-relaxed text-slate-600 sm:text-lg">
-                                The stack is open; the <strong className="font-semibold text-slate-800">system</strong> is people. HydroSentry
-                                recruits, trains, and pays local youth as Sensor Wardens — a{' '}
-                                <strong className="font-semibold text-slate-800">local gig economy for climate resilience</strong> that maintains
-                                hardware, validates field reality, and keeps alert pathways accountable to communities — not distant platforms.
+                                <strong className="font-semibold text-slate-800">The Sahel Resilience Stack</strong> is open; the{' '}
+                                <strong className="font-semibold text-slate-800">system</strong> is people. The{' '}
+                                <strong className="font-semibold text-slate-800">Orivon Edge Youth Guild</strong> and{' '}
+                                <strong className="font-semibold text-slate-800">Youth Warden Guild</strong> recruit, train, and coordinate{' '}
+                                <strong className="font-semibold text-slate-800">50+ local youth contributors</strong> as Sensor Wardens—a local gig economy for climate resilience that maintains
+                                hardware, validates field reality, and keeps alert pathways accountable to communities—not distant platforms.
                             </p>
                             <ul className="mt-10 space-y-8">
                                 {[
@@ -516,7 +528,7 @@ export default function Landing() {
                                     },
                                     {
                                         title: 'Incident dispatcher',
-                                        desc: 'Transparent workflows for maintenance, alerts, and field reports — built for coordination with BOSEPA and ward focal points.',
+                                        desc: 'Transparent workflows for maintenance, alerts, and field reports — built for coordination with ward focal points and partner agencies.',
                                     },
                                 ].map((f, i) => (
                                     <li key={i} className="flex gap-4 border-b border-slate-200/80 pb-8 last:border-0 last:pb-0">
@@ -565,14 +577,14 @@ export default function Landing() {
                                 Explore the stack — demo, code, or secure access
                             </h2>
                             <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base">
-                                The live demo uses simulated pilot telemetry so reviewers can stress-test the UI honestly. For production
-                                deployments, use the secure operator login.
+                                The live demo uses simulated <strong className="font-semibold text-slate-800">10-node pilot</strong> telemetry so reviewers can stress-test the UI honestly.
+                                Public code ships under the <strong className="font-semibold text-slate-800">MIT Open-Source License</strong>. For production deployments, use the secure dispatcher login.
                             </p>
                             <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap">
                                 <Button
                                     size="lg"
                                     className="h-12 rounded-xl bg-primary px-8 font-semibold"
-                                    onClick={() => navigate('/demo')}
+                                    onClick={() => navigate('/dashboard')}
                                 >
                                     Access live demo
                                     <ArrowRight className="ml-2 h-5 w-5" />
@@ -589,7 +601,7 @@ export default function Landing() {
                                     className="h-12 rounded-xl px-8 font-semibold"
                                     onClick={() => navigate('/login')}
                                 >
-                                    Operator login
+                                    Dispatcher login
                                 </Button>
                             </div>
                         </div>
@@ -607,7 +619,11 @@ export default function Landing() {
                                     </span>
                                 </div>
                                 <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-400">
-                                    Open-source edge early warning blueprint for the Lake Chad Basin — open hardware, open data, youth-maintained.
+                                    <strong className="font-semibold text-slate-200">The Sahel Resilience Stack</strong> — HydroSentry Green GIS module for climate resilience. Open hardware, open data,
+                                    maintained by the Orivon Edge Youth Guild and Youth Warden Guild.
+                                </p>
+                                <p className="mt-3 max-w-sm text-xs font-semibold uppercase tracking-wide text-sky-300">
+                                    MIT Open-Source License
                                 </p>
                             </div>
                             <div className="text-sm">
@@ -615,12 +631,18 @@ export default function Landing() {
                                 <p className="mt-2">
                                     <strong className="text-white">Orivon Edge</strong>
                                 </p>
+                                <p className="mt-2 text-xs text-slate-500">Local maintainers: Orivon Edge Youth Guild · Youth Warden Guild</p>
                             </div>
                         </div>
                         <div className="flex flex-col items-center justify-between gap-4 pt-8 text-xs text-slate-500 sm:flex-row">
-                            <p>© {new Date().getFullYear()} Orivon Edge. All rights reserved.</p>
                             <p>
-                                Borno State, Nigeria · v1.0.0-MVP
+                                © {new Date().getFullYear()} Orivon Edge. Released under{' '}
+                                <strong className="font-semibold text-slate-300">MIT Open-Source License</strong>.
+                            </p>
+                            <p className="text-center sm:text-right">
+                                <span className="font-mono font-semibold text-slate-400">v1.2.4-MVP</span>
+                                <span className="mx-2 text-slate-600">·</span>
+                                Borno State, Nigeria · HydroSentry · The Sahel Resilience Stack
                             </p>
                         </div>
                     </div>

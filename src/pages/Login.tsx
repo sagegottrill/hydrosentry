@@ -45,7 +45,7 @@ export default function Login() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">
-                Operator ID / Email
+                Dispatcher ID / Email
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -103,8 +103,10 @@ export default function Login() {
       </Card>
 
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 max-w-md px-4 text-center text-xs text-muted-foreground space-y-1">
-        <p>🔒 Cryptographically secured via Local-First CRDT synchronization.</p>
-        <p>© 2026 Orivon Edge Open Infrastructure.</p>
+        <p>Command console — offline-capable sync for field operations.</p>
+        <p>
+          © 2026 Orivon Edge. MIT Open-Source License · HydroSentry v1.2.4-MVP.
+        </p>
       </div>
     </div>
   );

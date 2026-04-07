@@ -10,6 +10,8 @@ interface MetricCardProps {
   status?: 'critical' | 'warning' | 'success' | 'neutral';
   sparklineData?: { day: number; value: number }[];
   sparklineColor?: string;
+  /** Recharts path animation when data shifts (ambient pulse). */
+  sparklineAnimate?: boolean;
   /** Opens linked view / drill-down when set */
   onClick?: () => void;
 }
@@ -45,11 +47,13 @@ export function MetricCard({
   status = 'neutral',
   sparklineData,
   sparklineColor = 'hsl(var(--primary))',
+  sparklineAnimate = true,
   onClick,
 }: MetricCardProps) {
   const st = statusStyles[status];
   const StatusIcon = st.icon;
   const gradId = `m-${title.replace(/\W/g, '').slice(0, 24) || 'spark'}-${status}`;
+  const isFloodRisk = title.toLowerCase().includes('flood risk value');
 
   return (
     <div
@@ -90,7 +94,12 @@ export function MetricCard({
 
         <div className="mt-auto flex flex-1 items-end justify-between gap-2">
           <div className="min-w-0">
-            <p className="break-words text-xl font-bold leading-tight tracking-tight text-foreground tabular-nums sm:text-2xl">
+            <p
+              className={cn(
+                'break-words font-bold leading-tight tracking-tight text-foreground tabular-nums',
+                isFloodRisk ? 'text-3xl sm:text-[2.125rem]' : 'text-xl sm:text-2xl',
+              )}
+            >
               {value}
             </p>
 
@@ -132,6 +141,9 @@ export function MetricCard({
                     stroke={sparklineColor}
                     strokeWidth={1.25}
                     fill={`url(#${gradId})`}
+                    isAnimationActive={sparklineAnimate}
+                    animationDuration={sparklineAnimate ? 780 : 0}
+                    animationEasing="ease-out"
                   />
                 </AreaChart>
               </ResponsiveContainer>

@@ -188,6 +188,10 @@
     @apply lg:grid-cols-5;
   }
 
+  .stat-grid-6 {
+    @apply lg:grid-cols-6;
+  }
+
   .stat-grid-7 {
     @apply md:grid-cols-4 xl:grid-cols-7;
   }
@@ -221,6 +225,12 @@
     @apply flex w-full min-w-0 max-w-full flex-col overflow-x-hidden px-3 py-3 sm:px-5 sm:py-4 md:px-6;
     @apply max-md:min-h-min max-md:flex-none max-md:overflow-y-visible;
     @apply md:min-h-0 md:flex-1 md:overflow-hidden;
+  }
+
+  /** Inner column under PageHeader: fills viewport on md+; pair with scrollable `.panel-scroll` children */
+  .dashboard-page-body {
+    @apply flex min-h-0 flex-1 flex-col gap-3 overflow-hidden sm:gap-4;
+    @apply max-md:min-h-min max-md:flex-none max-md:overflow-visible;
   }
 
   /** White panel: thin border, almost no shadow */
