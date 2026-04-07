@@ -13,7 +13,7 @@ const trainingConfig = {
     pending: { label: 'Pending', icon: AlertCircle, className: 'bg-slate-50 text-slate-500 border-slate-200' },
 };
 
-const stipendConfig = {
+const payoutConfig = {
     paid: { label: 'Paid', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
     pending: { label: 'Pending', className: 'bg-amber-50 text-amber-700 border-amber-200' },
     overdue: { label: 'Overdue', className: 'bg-rose-50 text-rose-700 border-rose-200' },
@@ -21,7 +21,7 @@ const stipendConfig = {
 
 function WardenCard({ warden }: { warden: SensorWarden }) {
     const training = trainingConfig[warden.trainingStatus];
-    const stipend = stipendConfig[warden.stipendStatus];
+    const payout = payoutConfig[warden.payoutStatus];
     const TrainingIcon = training.icon;
     const completedModules = warden.trainingModules.filter(m => m.completed).length;
     const totalModules = warden.trainingModules.length;
@@ -114,8 +114,8 @@ function WardenCard({ warden }: { warden: SensorWarden }) {
 
                 {/* Footer */}
                 <div className="flex flex-col gap-3 border-t border-border pt-4 text-xs sm:flex-row sm:items-center sm:justify-between">
-                    <span className={cn('w-fit rounded-md border px-2 py-1 font-medium', stipend.className)}>
-                        ₦{warden.monthlyStipend.toLocaleString()}/mo — {stipend.label}
+                    <span className={cn('w-fit rounded-md border px-2 py-1 font-medium', payout.className)}>
+                        ₦{warden.ytdPayout.toLocaleString()} YTD — {payout.label}
                     </span>
                     <span className="flex items-center gap-1.5 text-muted-foreground">
                         <Calendar className="h-3.5 w-3.5 shrink-0" />
@@ -144,9 +144,9 @@ export default function SensorWardens() {
                             { label: 'Pending training', value: stats.trainingPending, icon: AlertCircle, textCol: 'text-slate-600', iconCol: 'text-slate-500' },
                             { label: 'Nodes covered', value: `${stats.nodesCovered}/${stats.totalNodes}`, icon: Shield, textCol: 'text-foreground', iconCol: 'text-muted-foreground' },
                             {
-                                label: 'Monthly budget',
-                                value: `₦${stats.monthlyBudget.toLocaleString()}`,
-                                sub: '10 wardens × ₦15,000',
+                                label: 'Monthly Task Pool',
+                                value: `₦${stats.monthlyTaskPool.toLocaleString()}`,
+                                sub: 'Task-based dispatch pool (₦12,000 / task)',
                                 icon: DollarSign,
                                 textCol: 'text-emerald-700',
                                 iconCol: 'text-emerald-500',
@@ -173,8 +173,8 @@ export default function SensorWardens() {
                                 <DollarSign className="h-6 w-6 text-emerald-500" />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-lg font-semibold tracking-tight text-foreground">₦{stats.totalDisbursed.toLocaleString()} total disbursed</p>
-                                <p className="mt-0.5 text-xs text-primary">Youth employment payments</p>
+                                <p className="text-lg font-semibold tracking-tight text-foreground">₦{stats.totalDisbursed.toLocaleString()} disbursed</p>
+                                <p className="mt-0.5 text-xs text-primary">Task &amp; Dispatch payouts</p>
                             </div>
                         </div>
                         <div className="flex min-w-0 items-center gap-4 sm:border-l sm:border-border/60 sm:pl-6">

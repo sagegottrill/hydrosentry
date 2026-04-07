@@ -57,8 +57,8 @@ const createDataSources = (): DataSource[] => {
     },
     {
       id: 'odk-server',
-      name: 'ODK Collect Server',
-      description: 'Field data collection from enumerators',
+      name: 'Warden Field Sync Engine',
+      description: 'Asynchronous field reports from Guild Wardens',
       status: 'online',
       lastSync: '15 min ago',
       lastSyncTimestamp: now - 15 * 60 * 1000,

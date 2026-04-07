@@ -34,7 +34,7 @@ type NodeOption = {
 const DEMO_NODE_OPTIONS: NodeOption[] = [
   { id: 'demo-hs-ngadda-001', publicCode: 'HS-NGADDA-001', name: 'Ngadda Bridge Alpha', location: 'Monday Market Bridge' },
   { id: 'demo-hs-gwange-002', publicCode: 'HS-GWANGE-002', name: 'Gwange Drainage Sensor', location: 'Gwange Ward' },
-  { id: 'demo-hs-lagos-003', publicCode: 'HS-LAGOS-003', name: 'Lagos Street Node', location: 'Lagos Street' },
+  { id: 'demo-hs-lagos-003', publicCode: 'SN-03', name: 'Lagos Street Node', location: 'Lagos Street Channel' },
   { id: 'demo-hs-alau-004', publicCode: 'HS-ALAU-004', name: 'Alau Dam Monitor', location: 'Alau Dam Spillway' },
   { id: 'demo-hs-jere-005', publicCode: 'HS-JERE-005', name: 'Jere LGA Rain Station', location: 'Jere LGA' },
   { id: 'demo-hs-konduga-006', publicCode: 'HS-KONDUGA-006', name: 'Konduga Flow Meter', location: 'Konduga' },
@@ -359,7 +359,7 @@ export default function WardenFieldReport() {
               <ArrowLeft className="h-5 w-5" strokeWidth={2} aria-hidden />
             </button>
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Data Scout Entry</h1>
+              <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Warden Field Report</h1>
               <p className="mt-1 text-sm leading-snug text-blue-200/95">
                 Field hardware check — works on phone or laptop
               </p>

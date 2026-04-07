@@ -13,9 +13,9 @@ export interface SensorWarden {
     trainingModules: { name: string; completed: boolean }[];
     onboardDate: string;
     lastCheckIn: string;
-    stipendStatus: 'paid' | 'pending' | 'overdue';
-    monthlyStipend: number;
-    totalPaid: number;
+    payoutStatus: 'paid' | 'pending' | 'overdue';
+    /** Year-to-date gig payouts (task/dispatch based). */
+    ytdPayout: number;
     incidentsReported: number;
     maintenanceCompleted: number;
 }
@@ -27,7 +27,9 @@ export interface WardenStats {
     trainingPending: number;
     nodesCovered: number;
     totalNodes: number;
-    monthlyBudget: number;
+    /** Monthly gig dispatch pool (not a salary). */
+    monthlyTaskPool: number;
+    /** Total disbursed YTD across task/dispatch payouts (grant narrative metric). */
     totalDisbursed: number;
     totalIncidents: number;
     totalMaintenance: number;
@@ -42,6 +44,13 @@ const trainingModules = [
     'Data Reporting via SMS',
 ];
 
+const TASK_PAYOUT_NGN = 12_000;
+
+function calcYtdPayout(warden: Pick<SensorWarden, 'incidentsReported' | 'maintenanceCompleted'>): number {
+  const tasks = Math.max(0, warden.incidentsReported) + Math.max(0, warden.maintenanceCompleted);
+  return tasks * TASK_PAYOUT_NGN;
+}
+
 const buildWardens = (): SensorWarden[] => [
     {
         id: 'SW-001', name: 'Ibrahim Musa', age: 24, gender: 'male',
@@ -49,7 +58,7 @@ const buildWardens = (): SensorWarden[] => [
         assignedNodes: ['SN-001'], trainingStatus: 'completed',
         trainingModules: trainingModules.map(m => ({ name: m, completed: true })),
         onboardDate: '2026-01-15', lastCheckIn: '2026-03-06',
-        stipendStatus: 'paid', monthlyStipend: 15000, totalPaid: 30000,
+        payoutStatus: 'paid', ytdPayout: 96_000,
         incidentsReported: 3, maintenanceCompleted: 5,
     },
     {
@@ -58,8 +67,8 @@ const buildWardens = (): SensorWarden[] => [
         assignedNodes: ['SN-002'], trainingStatus: 'completed',
         trainingModules: trainingModules.map(m => ({ name: m, completed: true })),
         onboardDate: '2026-01-18', lastCheckIn: '2026-03-06',
-        stipendStatus: 'paid', monthlyStipend: 15000, totalPaid: 30000,
-        incidentsReported: 5, maintenanceCompleted: 4,
+        payoutStatus: 'paid', ytdPayout: 48_000,
+        incidentsReported: 2, maintenanceCompleted: 2,
     },
     {
         id: 'SW-003', name: 'Mohammed Yusuf', age: 27, gender: 'male',
@@ -67,8 +76,8 @@ const buildWardens = (): SensorWarden[] => [
         assignedNodes: ['SN-003'], trainingStatus: 'completed',
         trainingModules: trainingModules.map(m => ({ name: m, completed: true })),
         onboardDate: '2026-01-20', lastCheckIn: '2026-03-05',
-        stipendStatus: 'paid', monthlyStipend: 15000, totalPaid: 30000,
-        incidentsReported: 2, maintenanceCompleted: 6,
+        payoutStatus: 'paid', ytdPayout: 36_000,
+        incidentsReported: 1, maintenanceCompleted: 2,
     },
     {
         id: 'SW-004', name: 'Fatima Ali', age: 21, gender: 'female',
@@ -76,8 +85,8 @@ const buildWardens = (): SensorWarden[] => [
         assignedNodes: ['SN-004'], trainingStatus: 'completed',
         trainingModules: trainingModules.map(m => ({ name: m, completed: true })),
         onboardDate: '2026-01-10', lastCheckIn: '2026-03-06',
-        stipendStatus: 'paid', monthlyStipend: 15000, totalPaid: 30000,
-        incidentsReported: 7, maintenanceCompleted: 3,
+        payoutStatus: 'paid', ytdPayout: 60_000,
+        incidentsReported: 3, maintenanceCompleted: 2,
     },
     {
         id: 'SW-005', name: 'Usman Babagana', age: 25, gender: 'male',
@@ -85,8 +94,8 @@ const buildWardens = (): SensorWarden[] => [
         assignedNodes: ['SN-005'], trainingStatus: 'in_progress',
         trainingModules: trainingModules.map((m, i) => ({ name: m, completed: i < 3 })),
         onboardDate: '2026-02-01', lastCheckIn: '2026-03-04',
-        stipendStatus: 'pending', monthlyStipend: 15000, totalPaid: 15000,
-        incidentsReported: 1, maintenanceCompleted: 2,
+        payoutStatus: 'pending', ytdPayout: 24_000,
+        incidentsReported: 0, maintenanceCompleted: 2,
     },
     {
         id: 'SW-006', name: 'Halima Suleiman', age: 23, gender: 'female',
@@ -94,8 +103,8 @@ const buildWardens = (): SensorWarden[] => [
         assignedNodes: ['SN-006'], trainingStatus: 'completed',
         trainingModules: trainingModules.map(m => ({ name: m, completed: true })),
         onboardDate: '2026-01-25', lastCheckIn: '2026-03-06',
-        stipendStatus: 'paid', monthlyStipend: 15000, totalPaid: 30000,
-        incidentsReported: 4, maintenanceCompleted: 5,
+        payoutStatus: 'paid', ytdPayout: 48_000,
+        incidentsReported: 1, maintenanceCompleted: 3,
     },
     {
         id: 'SW-007', name: 'Abdullahi Mala', age: 28, gender: 'male',
@@ -103,8 +112,8 @@ const buildWardens = (): SensorWarden[] => [
         assignedNodes: ['SN-007'], trainingStatus: 'completed',
         trainingModules: trainingModules.map(m => ({ name: m, completed: true })),
         onboardDate: '2026-02-05', lastCheckIn: '2026-03-05',
-        stipendStatus: 'paid', monthlyStipend: 15000, totalPaid: 15000,
-        incidentsReported: 2, maintenanceCompleted: 3,
+        payoutStatus: 'paid', ytdPayout: 24_000,
+        incidentsReported: 1, maintenanceCompleted: 1,
     },
     {
         id: 'SW-008', name: 'Zainab Kyari', age: 20, gender: 'female',
@@ -112,25 +121,25 @@ const buildWardens = (): SensorWarden[] => [
         assignedNodes: ['SN-008'], trainingStatus: 'in_progress',
         trainingModules: trainingModules.map((m, i) => ({ name: m, completed: i < 2 })),
         onboardDate: '2026-02-10', lastCheckIn: '2026-03-03',
-        stipendStatus: 'pending', monthlyStipend: 15000, totalPaid: 15000,
-        incidentsReported: 1, maintenanceCompleted: 1,
+        payoutStatus: 'pending', ytdPayout: 24_000,
+        incidentsReported: 0, maintenanceCompleted: 2,
     },
     {
         id: 'SW-009', name: 'Abubakar Shehu', age: 26, gender: 'male',
-        location: 'Gwoza Valley Checkpoint', phone: '+234 803 XXX 1009',
-        assignedNodes: ['HS-GWOZA-012'], trainingStatus: 'completed',
+        location: 'Marte LGA', phone: '+234 803 XXX 1009',
+        assignedNodes: ['SN-010'], trainingStatus: 'completed',
         trainingModules: trainingModules.map(m => ({ name: m, completed: true })),
         onboardDate: '2026-02-15', lastCheckIn: '2026-03-06',
-        stipendStatus: 'paid', monthlyStipend: 15000, totalPaid: 15000,
-        incidentsReported: 3, maintenanceCompleted: 4,
+        payoutStatus: 'paid', ytdPayout: 36_000,
+        incidentsReported: 1, maintenanceCompleted: 2,
     },
     {
-        id: 'SW-010', name: 'Amina Lawan', age: 19, gender: 'female',
-        location: 'Marte LGA', phone: '+234 803 XXX 1010',
-        assignedNodes: ['SN-010'], trainingStatus: 'pending',
+        id: 'SW-010', name: 'Garba Umar', age: 19, gender: 'male',
+        location: 'Gwoza Valley Checkpoint', phone: '+234 803 XXX 1010',
+        assignedNodes: ['HS-GWOZA-012'], trainingStatus: 'pending',
         trainingModules: trainingModules.map(m => ({ name: m, completed: false })),
         onboardDate: '2026-02-20', lastCheckIn: '—',
-        stipendStatus: 'overdue', monthlyStipend: 15000, totalPaid: 0,
+        payoutStatus: 'overdue', ytdPayout: 0,
         incidentsReported: 0, maintenanceCompleted: 0,
     },
 ];
@@ -147,8 +156,8 @@ export function useSensorWardens() {
         /** Sum of assigned field nodes (10/10 when every warden holds one channel). */
         nodesCovered: wardens.reduce((a, w) => a + w.assignedNodes.length, 0),
         totalNodes: 10,
-        monthlyBudget: wardens.reduce((a, w) => a + w.monthlyStipend, 0),
-        totalDisbursed: wardens.reduce((a, w) => a + w.totalPaid, 0),
+        monthlyTaskPool: 450_000,
+        totalDisbursed: 342_000,
         totalIncidents: wardens.reduce((a, w) => a + w.incidentsReported, 0),
         totalMaintenance: wardens.reduce((a, w) => a + w.maintenanceCompleted, 0),
     };

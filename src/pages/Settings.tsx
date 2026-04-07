@@ -308,10 +308,10 @@ export default function Settings() {
             <div className="min-w-0">
               <h2 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground sm:text-base">
                 <Database className="h-4 w-4 shrink-0 text-primary sm:h-[1.125rem] sm:w-[1.125rem]" />
-                Data sources
+                Data sources | Cloud Enrichment Feeds (Command Center)
               </h2>
               <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-                Feed connectivity
+                Supplementary cloud APIs for command center visualization. Edge node anomaly detection remains 100% offline via LoRaWAN.
               </p>
             </div>
             <Button variant="outline" size="sm" onClick={handleRefreshAll} className="h-8 shrink-0 border-border text-xs sm:h-9 sm:text-sm">
