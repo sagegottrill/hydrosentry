@@ -1,14 +1,9 @@
 import {
     Users, GraduationCap, Shield, DollarSign,
-    CheckCircle, Clock, AlertCircle, Wrench, Phone, MapPin, Calendar
+    CheckCircle, Clock, AlertCircle, Wrench, MapPin, Calendar
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import {
-    Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+import { PageHeader } from '@/components/dashboard/PageHeader';
 import { useSensorWardens, type SensorWarden } from '@/hooks/useSensorWardens';
 import { cn } from '@/lib/utils';
 
@@ -18,7 +13,7 @@ const trainingConfig = {
     pending: { label: 'Pending', icon: AlertCircle, className: 'bg-slate-50 text-slate-500 border-slate-200' },
 };
 
-const stipendConfig = {
+const payoutConfig = {
     paid: { label: 'Paid', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
     pending: { label: 'Pending', className: 'bg-amber-50 text-amber-700 border-amber-200' },
     overdue: { label: 'Overdue', className: 'bg-rose-50 text-rose-700 border-rose-200' },
@@ -26,45 +21,45 @@ const stipendConfig = {
 
 function WardenCard({ warden }: { warden: SensorWarden }) {
     const training = trainingConfig[warden.trainingStatus];
-    const stipend = stipendConfig[warden.stipendStatus];
+    const payout = payoutConfig[warden.payoutStatus];
     const TrainingIcon = training.icon;
     const completedModules = warden.trainingModules.filter(m => m.completed).length;
     const totalModules = warden.trainingModules.length;
 
     return (
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-sky-300 transition-all">
-            <div className="p-6 space-y-5">
+        <div className="dashboard-card transition-shadow duration-200 hover:shadow-sm">
+            <div className="space-y-5 p-5 sm:p-6">
                 {/* Header */}
-                <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-4">
+                <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-4">
                         <div className={cn(
-                            'w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border',
+                            'flex h-12 w-12 shrink-0 items-center justify-center rounded-full border text-sm font-semibold',
                             warden.gender === 'female'
                                 ? 'bg-pink-50 text-pink-600 border-pink-100'
-                                : 'bg-[#005587]/10 text-[#005587] border-[#005587]/20',
+                                : 'border-primary/20 bg-primary/8 text-primary',
                         )}>
                             {warden.name.split(' ').map(n => n[0]).join('')}
                         </div>
-                        <div>
-                            <h3 className="font-bold text-base text-slate-900 tracking-tight">{warden.name}</h3>
-                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 mt-0.5">
-                                <MapPin className="h-3 w-3" /> {warden.location}
+                        <div className="min-w-0">
+                            <h3 className="truncate text-base font-semibold tracking-tight text-foreground">{warden.name}</h3>
+                            <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <MapPin className="h-3.5 w-3.5 shrink-0" /> {warden.location}
                             </p>
                         </div>
                     </div>
-                    <span className={cn('px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest border flex items-center', training.className)}>
-                        <TrainingIcon className="h-3 w-3 mr-1" />
+                    <span className={cn('flex shrink-0 items-center rounded-md border px-2 py-0.5 text-xs font-medium', training.className)}>
+                        <TrainingIcon className="mr-1 h-3.5 w-3.5" />
                         {training.label}
                     </span>
                 </div>
 
                 {/* Training Progress */}
                 <div className="space-y-2">
-                    <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
-                        <span className="text-slate-500 flex items-center gap-1.5">
-                            <GraduationCap className="h-3.5 w-3.5" /> Training Modules
+                    <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
+                        <span className="flex items-center gap-2">
+                            <GraduationCap className="h-4 w-4 shrink-0" /> Training modules
                         </span>
-                        <span className="text-slate-900">{completedModules}/{totalModules}</span>
+                        <span className="tabular-nums text-foreground">{completedModules}/{totalModules}</span>
                     </div>
                     <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                         <div
@@ -77,48 +72,54 @@ function WardenCard({ warden }: { warden: SensorWarden }) {
                             style={{ width: `${(completedModules / totalModules) * 100}%` }}
                         />
                     </div>
-                    <div className="flex flex-wrap gap-1.5 mt-3">
+                    <ul className="mt-3 list-none space-y-2 p-0">
                         {warden.trainingModules.map((mod, i) => (
-                            <span
+                            <li
                                 key={i}
                                 className={cn(
-                                    'text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded border flex items-center',
+                                    'flex w-full items-start gap-2 rounded-md border px-2.5 py-1.5 text-left text-xs font-medium leading-snug',
                                     mod.completed
                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                        : 'bg-slate-50 text-slate-400 border-slate-200',
+                                        : 'bg-slate-50 text-slate-500 border-slate-200',
                                 )}
                             >
-                                {mod.completed ? <CheckCircle className="h-3 w-3 mr-1" /> : <div className="h-3 w-3 mr-1 rounded-full border border-slate-300" />}
-                                {mod.name}
-                            </span>
+                                <span className="mt-0.5 shrink-0" aria-hidden>
+                                    {mod.completed ? (
+                                        <CheckCircle className="h-3.5 w-3.5" />
+                                    ) : (
+                                        <span className="block h-3.5 w-3.5 rounded-full border border-slate-300" />
+                                    )}
+                                </span>
+                                <span className="min-w-0 flex-1">{mod.name}</span>
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-3 gap-3 pt-4 border-t border-slate-100">
-                    <div className="text-center bg-slate-50 rounded-lg p-2 border border-slate-100">
-                        <p className="text-xl font-extrabold text-[#005587]">{warden.assignedNodes.length}</p>
-                        <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-0.5">Nodes</p>
+                <div className="grid grid-cols-1 gap-3 border-t border-border pt-4 sm:grid-cols-3">
+                    <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
+                        <p className="text-xl font-bold tabular-nums text-primary">{warden.assignedNodes.length}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Nodes</p>
                     </div>
-                    <div className="text-center bg-slate-50 rounded-lg p-2 border border-slate-100">
-                        <p className="text-xl font-extrabold text-amber-600">{warden.incidentsReported}</p>
-                        <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-0.5">Incidents</p>
+                    <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
+                        <p className="text-xl font-bold tabular-nums text-amber-600">{warden.incidentsReported}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Incidents</p>
                     </div>
-                    <div className="text-center bg-slate-50 rounded-lg p-2 border border-slate-100">
-                        <p className="text-xl font-extrabold text-emerald-600">{warden.maintenanceCompleted}</p>
-                        <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-0.5">Maint.</p>
+                    <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
+                        <p className="text-xl font-bold tabular-nums text-emerald-600">{warden.maintenanceCompleted}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Maintenance</p>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between pt-4 border-t border-slate-100 text-xs">
-                    <span className={cn('px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest border', stipend.className)}>
-                        ₦{warden.monthlyStipend.toLocaleString()}/mo — {stipend.label}
+                <div className="flex flex-col gap-3 border-t border-border pt-4 text-xs sm:flex-row sm:items-center sm:justify-between">
+                    <span className={cn('w-fit rounded-md border px-2 py-1 font-medium', payout.className)}>
+                        ₦{warden.ytdPayout.toLocaleString()} YTD — {payout.label}
                     </span>
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 flex items-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5" />
-                        Last Check: {warden.lastCheckIn}
+                    <span className="flex items-center gap-1.5 text-muted-foreground">
+                        <Calendar className="h-3.5 w-3.5 shrink-0" />
+                        Last check: {warden.lastCheckIn}
                     </span>
                 </div>
             </div>
@@ -131,72 +132,74 @@ export default function SensorWardens() {
 
     return (
         <DashboardLayout>
-            <div className="max-w-7xl mx-auto py-8 px-6 space-y-6">
-                {/* Header */}
-                <div className="border-b border-slate-200 pb-4">
-                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3 tracking-tight">
-                        <Users className="h-6 w-6 text-[#005587]" />
-                        Sensor Wardens Program
-                    </h1>
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1.5">
-                        Youth employment initiative — training, maintaining, and protecting the LoRaWAN sensor network
-                    </p>
-                </div>
+            <div className="dashboard-shell">
+                <PageHeader variant="compact" icon={Users} title="Sensor wardens" />
 
-                {/* Stats */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-px rounded-xl overflow-hidden bg-slate-100 shadow-soft">
-                    {[
-                        { label: 'Active Wardens', value: stats.totalWardens, icon: Users, textCol: 'text-slate-900', iconCol: 'text-[#005587]' },
-                        { label: 'Training Done', value: stats.trainingCompleted, icon: GraduationCap, textCol: 'text-emerald-700', iconCol: 'text-emerald-500' },
-                        { label: 'In Training', value: stats.trainingInProgress, icon: Clock, textCol: 'text-amber-600', iconCol: 'text-amber-500' },
-                        { label: 'Nodes Covered', value: `${stats.nodesCovered}/${stats.totalNodes}`, icon: Shield, textCol: 'text-slate-900', iconCol: 'text-slate-400' },
-                        { label: 'Monthly Budget', value: `₦${(stats.monthlyBudget / 1000).toFixed(0)}K`, icon: DollarSign, textCol: 'text-emerald-700', iconCol: 'text-emerald-500' },
-                    ].map((s, i) => (
-                        <div key={i} className="bg-white p-5 flex flex-col justify-center gap-1">
-                            <div className="flex items-center gap-2 mb-1">
-                                <s.icon className={cn('h-4 w-4 flex-shrink-0', s.iconCol)} />
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{s.label}</p>
+                <div className="stat-grid stat-grid-6">
+                    {(
+                        [
+                            { label: 'Active wardens', value: stats.totalWardens, icon: Users, textCol: 'text-foreground', iconCol: 'text-primary' },
+                            { label: 'Training done', value: stats.trainingCompleted, icon: GraduationCap, textCol: 'text-emerald-700', iconCol: 'text-emerald-500' },
+                            { label: 'In training', value: stats.trainingInProgress, icon: Clock, textCol: 'text-amber-600', iconCol: 'text-amber-500' },
+                            { label: 'Pending training', value: stats.trainingPending, icon: AlertCircle, textCol: 'text-slate-600', iconCol: 'text-slate-500' },
+                            { label: 'Nodes covered', value: `${stats.nodesCovered}/${stats.totalNodes}`, icon: Shield, textCol: 'text-foreground', iconCol: 'text-muted-foreground' },
+                            {
+                                label: 'Monthly Task Pool',
+                                value: `₦${stats.monthlyTaskPool.toLocaleString()}`,
+                                sub: 'Task-based dispatch pool (₦12,000 / task)',
+                                icon: DollarSign,
+                                textCol: 'text-emerald-700',
+                                iconCol: 'text-emerald-500',
+                            },
+                        ] as const
+                    ).map((s, i) => (
+                        <div key={i} className="stat-tile">
+                            <div className="stat-tile-head">
+                                <s.icon className={cn('h-4 w-4 shrink-0', s.iconCol)} strokeWidth={1.75} />
+                                <p className="stat-tile-label">{s.label}</p>
                             </div>
-                            <p className={cn("text-2xl font-extrabold tracking-tight", s.textCol)}>{s.value}</p>
+                            <p className={cn('stat-tile-value', s.textCol)}>{s.value}</p>
+                            {'sub' in s && s.sub ? (
+                                <p className="mt-0.5 text-2xs font-medium tabular-nums text-muted-foreground">{s.sub}</p>
+                            ) : null}
                         </div>
                     ))}
                 </div>
 
-                {/* Impact summary */}
-                <div className="bg-sky-50 border border-sky-100 rounded-xl p-5 shadow-sm">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-white rounded-lg border border-emerald-100 shadow-sm">
+                <div className="surface-card border-primary/15 p-5 sm:p-6">
+                    <div className="flex flex-col gap-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+                        <div className="flex min-w-0 items-center gap-4">
+                            <div className="rounded-lg border border-border bg-card p-3 shadow-sm">
                                 <DollarSign className="h-6 w-6 text-emerald-500" />
                             </div>
-                            <div>
-                                <p className="text-lg font-bold text-slate-900 tracking-tight">₦{stats.totalDisbursed.toLocaleString()} Total Disbursed</p>
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-[#005587] mt-0.5">Direct youth employment payments</p>
+                            <div className="min-w-0">
+                                <p className="text-lg font-semibold tracking-tight text-foreground">₦{stats.totalDisbursed.toLocaleString()} disbursed</p>
+                                <p className="mt-0.5 text-xs text-primary">Task &amp; Dispatch payouts</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4 border-l-0 sm:border-l sm:pl-6 border-sky-200">
-                            <div className="p-3 bg-white rounded-lg border border-sky-100 shadow-sm">
-                                <Wrench className="h-6 w-6 text-[#005587]" />
+                        <div className="flex min-w-0 items-center gap-4 sm:border-l sm:border-border/60 sm:pl-6">
+                            <div className="rounded-lg border border-border bg-card p-3 shadow-sm">
+                                <Wrench className="h-6 w-6 text-primary" />
                             </div>
-                            <div>
-                                <p className="text-lg font-bold text-slate-900 tracking-tight">{stats.totalMaintenance} Maintenance Tasks</p>
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-[#005587] mt-0.5">Completed by wardens</p>
+                            <div className="min-w-0">
+                                <p className="text-lg font-semibold tracking-tight text-foreground">{stats.totalMaintenance} maintenance tasks</p>
+                                <p className="mt-0.5 text-xs text-primary">Completed by wardens</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4 border-l-0 sm:border-l sm:pl-6 border-sky-200">
-                            <div className="p-3 bg-white rounded-lg border border-amber-100 shadow-sm">
+                        <div className="flex min-w-0 items-center gap-4 sm:border-l sm:border-border/60 sm:pl-6">
+                            <div className="rounded-lg border border-border bg-card p-3 shadow-sm">
                                 <Shield className="h-6 w-6 text-amber-500" />
                             </div>
-                            <div>
-                                <p className="text-lg font-bold text-slate-900 tracking-tight">{stats.totalIncidents} Incidents Reported</p>
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-[#005587] mt-0.5">Proactive community monitoring</p>
+                            <div className="min-w-0">
+                                <p className="text-lg font-semibold tracking-tight text-foreground">{stats.totalIncidents} incidents reported</p>
+                                <p className="mt-0.5 text-xs text-primary">Community monitoring</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Warden Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                     {wardens.map(warden => (
                         <WardenCard key={warden.id} warden={warden} />
                     ))}

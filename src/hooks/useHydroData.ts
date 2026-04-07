@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useOpsAlertsRealtimePrepend } from '@/hooks/useOpsAlertsRealtime';
 import type { 
   RiskZone, 
   Borehole, 
@@ -7,6 +8,7 @@ import type {
   DashboardMetrics,
   Season 
 } from '@/types/hydrosentry';
+import { EDGE_HARDWARE_SPEC } from '@/types/hydrosentry';
 
 // Mock data - structured for easy Supabase migration
 const mockRiskZones: RiskZone[] = [
@@ -18,7 +20,13 @@ const mockRiskZones: RiskZone[] = [
     severity: 'high',
     season: 'wet',
     blockageType: 'Solid Waste',
-    description: 'Major drainage blockage causing flood risk'
+    description: 'Major drainage blockage causing flood risk',
+    linkedSensorNodeId: 'SN-001',
+    lastTelemetry: {
+      water_level_cm: 228,
+      battery_voltage: 3.30,
+      node_status: 'online',
+    },
   },
   {
     id: 'rz-002',
@@ -28,7 +36,13 @@ const mockRiskZones: RiskZone[] = [
     severity: 'high',
     season: 'wet',
     blockageType: 'Debris & Sediment',
-    description: 'Recurring flood zone during heavy rains'
+    description: 'Recurring flood zone during heavy rains',
+    linkedSensorNodeId: 'SN-002',
+    lastTelemetry: {
+      water_level_cm: 198,
+      battery_voltage: 3.30,
+      node_status: 'online',
+    },
   },
   {
     id: 'rz-003',
@@ -38,16 +52,22 @@ const mockRiskZones: RiskZone[] = [
     severity: 'medium',
     season: 'wet',
     blockageType: 'Construction Waste',
-    description: 'Channel overflow risk area'
+    description: 'Channel overflow risk area',
+    linkedSensorNodeId: 'SN-003',
+    lastTelemetry: {
+      water_level_cm: 172,
+      battery_voltage: 3.30,
+      node_status: 'online',
+    },
   }
 ];
 
 const mockBoreholes: Borehole[] = [
   {
     id: 'bh-001',
-    name: 'Pulka Zone C Borehole',
-    location: 'Pulka Zone C',
-    coordinates: [11.1890, 13.6540],
+    name: 'Dikwa Water Point Borehole',
+    location: 'Dikwa',
+    coordinates: [12.0361, 13.9180],
     status: 'failure',
     thirstIndex: 9.2,
     crpdScore: 9.8,
@@ -57,7 +77,7 @@ const mockBoreholes: Borehole[] = [
     id: 'bh-002',
     name: 'Gwoza Central Well',
     location: 'Gwoza LGA',
-    coordinates: [11.0823, 13.6980],
+    coordinates: [11.0833, 13.5167],
     status: 'failure',
     thirstIndex: 8.5,
     crpdScore: 8.2,
@@ -67,7 +87,7 @@ const mockBoreholes: Borehole[] = [
     id: 'bh-003',
     name: 'Bama Water Point',
     location: 'Bama',
-    coordinates: [11.5220, 13.6890],
+    coordinates: [11.5218, 13.6883],
     status: 'maintenance',
     thirstIndex: 6.0,
     crpdScore: 5.5,
@@ -75,7 +95,8 @@ const mockBoreholes: Borehole[] = [
   }
 ];
 
-const mockAlerts: Alert[] = [
+/** Baseline Action Dispatcher alerts — kept as default React state; live rows prepend via Realtime. */
+export const DISPATCH_MOCK_ALERTS_INITIAL: Alert[] = [
   {
     id: 'alert-001',
     priority: 'critical',
@@ -83,8 +104,8 @@ const mockAlerts: Alert[] = [
     description: 'Severe solid waste accumulation blocking primary drainage channel',
     location: 'Monday Market Bridge',
     recommendation: 'Deploy Excavator',
-    actionLabel: 'Dispatch Crew',
-    estimatedCost: 50000,
+    actionLabel: 'Deploy Excavator',
+    estimatedCost: 350000,
     season: 'wet',
     zoneId: 'rz-001',
     createdAt: new Date().toISOString()
@@ -114,17 +135,47 @@ const mockAlerts: Alert[] = [
     season: 'wet',
     zoneId: 'rz-003',
     createdAt: new Date().toISOString()
-  }
+  },
+  {
+    id: 'alert-004',
+    priority: 'critical',
+    title: 'Anomalous Movement — Safe Corridor Route 12',
+    description:
+      'Machine learning model predicts high likelihood of route obstruction or armed movement in Yelwata Sector over the next 12 hours based on recent displacement data.',
+    location: 'Yelwata Sector',
+    recommendation: 'Coordinate Warden Guild field validation and corridor status reporting',
+    actionLabel: 'Alert Warden Guild (Validation)',
+    estimatedCost: 15000,
+    season: 'dry',
+    createdAt: new Date().toISOString()
+  },
+  /** Wet-season climate–security nexus (dual-crisis engine must surface in flood shield mode). */
+  {
+    id: 'alert-005',
+    priority: 'warning',
+    title: 'CRPD spike — herder transit near Konduga corridor',
+    description:
+      'Conflict risk probability index rose to 8.4/10 on pastoral movement patterns overlapping farm parcels east of Konduga. Coordinate joint agency–security assessment.',
+    location: 'Konduga',
+    recommendation: 'Activate ward focal mediation and corridor monitoring',
+    actionLabel: 'Alert Warden Guild (Validation)',
+    estimatedCost: 12000,
+    season: 'wet',
+    createdAt: new Date().toISOString()
+  },
 ];
+
+const mockAlerts = DISPATCH_MOCK_ALERTS_INITIAL;
 
 const mockRoutes: Route[] = [
   {
     id: 'rt-001',
-    name: 'Burtali North Corridor',
+    name: 'Gwoza → Bama Pastoral Corridor',
     coordinates: [
-      [11.4500, 13.3000],
-      [11.3000, 13.5000],
-      [11.1890, 13.6540]
+      [11.0833, 13.5167], // Gwoza
+      [11.2200, 13.5600],
+      [11.3800, 13.6100],
+      [11.5218, 13.6883], // Bama
     ],
     status: 'verified',
     type: 'herder',
@@ -132,11 +183,12 @@ const mockRoutes: Route[] = [
   },
   {
     id: 'rt-002',
-    name: 'Yelwata-Pulka Route',
+    name: 'Bama → Dikwa North Track',
     coordinates: [
-      [11.2500, 13.4500],
-      [11.2000, 13.5500],
-      [11.1890, 13.6540]
+      [11.5218, 13.6883], // Bama
+      [11.7200, 13.7800],
+      [11.9000, 13.8600],
+      [12.0361, 13.9180], // Dikwa
     ],
     status: 'verified',
     type: 'herder',
@@ -144,11 +196,12 @@ const mockRoutes: Route[] = [
   },
   {
     id: 'rt-003',
-    name: 'Gwoza Safe Passage',
+    name: 'Gwoza Ridge Bypass',
     coordinates: [
-      [11.0823, 13.6980],
-      [11.1500, 13.6200],
-      [11.2500, 13.5500]
+      [11.0833, 13.5167], // Gwoza
+      [11.1600, 13.5800],
+      [11.2600, 13.6400],
+      [11.3600, 13.6900],
     ],
     status: 'unverified',
     type: 'herder',
@@ -162,9 +215,9 @@ const mockMetrics: DashboardMetrics = {
     currency: 'NGN',
     trend: 12
   },
-  boreholeFailures: {
-    count: 245,
-    status: 'critical'
+  guildFieldReports: {
+    activeCount: 14,
+    subtitle: 'Pending validation by Wardens',
   },
   conflictProbability: {
     percentage: 86,
@@ -188,14 +241,14 @@ export const sparklineData = {
     { day: 6, value: 28 },
     { day: 7, value: 28.8 }
   ],
-  boreholeFailures: [
-    { day: 1, value: 180 },
-    { day: 2, value: 195 },
-    { day: 3, value: 210 },
-    { day: 4, value: 225 },
-    { day: 5, value: 230 },
-    { day: 6, value: 240 },
-    { day: 7, value: 245 }
+  guildFieldReports: [
+    { day: 1, value: 8 },
+    { day: 2, value: 9 },
+    { day: 3, value: 10 },
+    { day: 4, value: 11 },
+    { day: 5, value: 12 },
+    { day: 6, value: 13 },
+    { day: 7, value: 14 },
   ],
   conflictProb: [
     { day: 1, value: 65 },
@@ -250,15 +303,17 @@ export function useHydroData() {
     routes,
     metrics: mockMetrics,
     sparklineData,
-    // Future: These will be replaced with actual Supabase queries
+    edgeHardwareSpec: EDGE_HARDWARE_SPEC,
     isLoading: false,
     error: null
   };
 }
 
 export function useAlerts() {
-  const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
-  
+  const [alerts, setAlerts] = useState<Alert[]>(() => [...DISPATCH_MOCK_ALERTS_INITIAL]);
+
+  useOpsAlertsRealtimePrepend(setAlerts);
+
   const dispatchAction = (alertId: string) => {
     // Future: This will POST to Supabase
     const workOrderNumber = Math.floor(400 + Math.random() * 100);

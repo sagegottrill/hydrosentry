@@ -5,12 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:vercel": "vercel dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "supabase:apply-flood-webhook": "node scripts/apply-telemetry-flood-webhook.mjs",
+    "supabase:test-flood-alert": "npx supabase db query --linked -f scripts/sql/test-flood-alert-insert.sql",
+    "supabase:e2e-flood": "node scripts/e2e-flood-end-to-end.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -42,6 +46,7 @@
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@studio-freight/react-lenis": "^0.0.47",
+    "@supabase/supabase-js": "^2.49.8",
     "@tanstack/react-query": "^5.83.0",
     "@types/leaflet": "^1.9.8",
     "class-variance-authority": "^0.7.1",
@@ -75,6 +80,7 @@
     "@types/node": "^22.16.5",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
+    "@vercel/node": "^5.7.0",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.32.0",
@@ -89,6 +95,7 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
     "vite": "^5.4.19",
+    "vite-plugin-pwa": "^1.2.0",
     "vitest": "^3.2.4"
   }
 }

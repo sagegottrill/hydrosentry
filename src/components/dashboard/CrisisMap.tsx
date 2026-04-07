@@ -3,7 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Droplets, Wrench } from 'lucide-react';
-import type { RiskZone, Borehole, Route, Season } from '@/types/hydrosentry';
+import type { RiskZone, Borehole, Route, Season, SensorNode, SensorTelemetrySnapshot } from '@/types/hydrosentry';
 
 // Fix for default marker icons in Leaflet with Vite
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -24,7 +24,7 @@ const createCustomIcon = (color: string, size: number = 24) => {
         background-color: ${color};
         border: 3px solid white;
         border-radius: 50%;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        box-shadow: 0 2px 12px rgba(15,23,42,0.12);
         position: relative;
       ">
         <div style="
@@ -52,15 +52,50 @@ const boreholeIcon = createCustomIcon('#f59e0b', 24);
 
 // Borno State center coordinates (Maiduguri)
 const BORNO_CENTER: L.LatLngExpression = [11.8333, 13.1500];
-const DEFAULT_ZOOM = 9;
+const DEFAULT_ZOOM = 8;
+const BORNO_ADMIN1_NAME = 'Borno';
 
-// Ngadda River path
+type GeoJsonFeature = {
+  type: 'Feature';
+  properties?: Record<string, unknown>;
+  geometry?: unknown;
+};
+
+type GeoJsonFeatureCollection = {
+  type: 'FeatureCollection';
+  features?: GeoJsonFeature[];
+};
+
+function resolveAdmin1Name(props: Record<string, unknown> | undefined): string | null {
+  if (!props) return null;
+  const candidates = [
+    props.admin1Name,
+    props.ADM1_EN,
+    props.adm1_name,
+    props.adm1Name,
+    props.ADM1_NAME,
+    props.state,
+    props.State,
+  ];
+  const v = candidates.find((x) => typeof x === 'string') as string | undefined;
+  return v ? v.trim() : null;
+}
+
+// Ngadda River path (mocked) — updated to pass through real nodes:
+// SN-004 (Alau Dam Monitor) → SN-001 (Ngadda Bridge Alpha, Maiduguri).
 const ngaddaRiverPath: L.LatLngExpression[] = [
-  [11.8200, 13.0800],
-  [11.8350, 13.1200],
-  [11.8456, 13.1523],
-  [11.8520, 13.1700],
-  [11.8600, 13.2000]
+  // Start near Alau Dam Monitor
+  [11.0667, 13.0833],
+  // Flow north-east toward Maiduguri corridor
+  [11.2100, 13.1000],
+  [11.4200, 13.1200],
+  [11.6100, 13.1350],
+  [11.7400, 13.1450],
+  // Pass directly through Ngadda Bridge Alpha
+  [11.8372, 13.1541],
+  // Continue slightly beyond the bridge for visual continuity
+  [11.8600, 13.1750],
+  [11.8850, 13.2050],
 ];
 
 interface CrisisMapProps {
@@ -69,12 +104,31 @@ interface CrisisMapProps {
   boreholes: Borehole[];
   routes: Route[];
   onDispatch?: (type: string, id: string) => void;
+  /** Live ESP32 telemetry for linked risk-zone nodes (optional). */
+  sensorNodes?: SensorNode[];
 }
 
-export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: CrisisMapProps) {
+function resolveZoneTelemetry(
+  zone: RiskZone,
+  sensorNodes?: SensorNode[],
+): SensorTelemetrySnapshot | undefined {
+  if (!zone.linkedSensorNodeId) return zone.lastTelemetry;
+  const live = sensorNodes?.find(
+    (n) => n.id === zone.linkedSensorNodeId || n.publicCode === zone.linkedSensorNodeId,
+  );
+  if (!live) return zone.lastTelemetry;
+  return {
+    water_level_cm: live.water_level_cm,
+    battery_voltage: live.battery_voltage,
+    node_status: live.node_status,
+  };
+}
+
+export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch, sensorNodes }: CrisisMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layersRef = useRef<L.LayerGroup | null>(null);
+  const bornoLgaLayerRef = useRef<L.GeoJSON | null>(null);
 
   // Initialize map
   useEffect(() => {
@@ -94,6 +148,7 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: 
 
     // Create layer group for seasonal content
     layersRef.current = L.layerGroup().addTo(map);
+    bornoLgaLayerRef.current = null;
     mapRef.current = map;
 
     // Cleanup
@@ -101,6 +156,69 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: 
       map.remove();
       mapRef.current = null;
       layersRef.current = null;
+    };
+  }, []);
+
+  // Load HDX Nigeria Admin2 polygons and filter to Borno (admin1).
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const res = await fetch('/nga_admin2.geojson', { cache: 'force-cache' });
+        if (!res.ok) return;
+        const data = (await res.json()) as GeoJsonFeatureCollection;
+        if (cancelled) return;
+
+        const features = (data.features ?? []).filter((f) => {
+          const props = (f?.properties ?? {}) as Record<string, unknown>;
+          const admin1 = resolveAdmin1Name(props);
+          return admin1?.toLowerCase() === BORNO_ADMIN1_NAME.toLowerCase();
+        });
+
+        // Remove prior layer (hot reload / rerender safe)
+        if (bornoLgaLayerRef.current) {
+          bornoLgaLayerRef.current.removeFrom(mapRef.current!);
+          bornoLgaLayerRef.current = null;
+        }
+
+        if (features.length === 0) return;
+
+        const layer = L.geoJSON(
+          { type: 'FeatureCollection', features } as unknown as GeoJSON.GeoJsonObject,
+          {
+            style: () => ({
+              color: '#0f766e', // teal border
+              weight: 2,
+              opacity: 0.9,
+              fillColor: '#0ea5e9', // blue fill
+              fillOpacity: 0.12,
+            }),
+          },
+        );
+
+        layer.addTo(mapRef.current!);
+        layer.bringToBack(); // keep pins/season layers above
+        bornoLgaLayerRef.current = layer;
+
+        // Fit view to Borno polygons (fallback is BORNO_CENTER/DEFAULT_ZOOM from init).
+        try {
+          const bounds = layer.getBounds();
+          if (bounds.isValid()) {
+            mapRef.current!.fitBounds(bounds, { padding: [24, 24] });
+          }
+        } catch {
+          // ignore bounds errors
+        }
+      } catch {
+        // ignore GeoJSON load failures (offline)
+      }
+    })();
+
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -123,6 +241,18 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: 
 
       // Add flood zone circles and markers
       riskZones.forEach((zone) => {
+        const tel = resolveZoneTelemetry(zone, sensorNodes);
+        const telHtml =
+          tel && zone.linkedSensorNodeId
+            ? `
+          <div style="margin-top:10px;padding:10px;background:#f1f5f9;border-radius:8px;font-size:11px;line-height:1.5;">
+            <p style="font-weight:800;color:#005587;margin:0 0 6px 0;text-transform:uppercase;letter-spacing:0.05em;">Edge · ${zone.linkedSensorNodeId}</p>
+            <p style="margin:0;"><span style="color:#64748b">JSN-SR04T depth:</span> <strong>${tel.water_level_cm.toFixed(2)} cm</strong></p>
+            <p style="margin:4px 0 0 0;"><span style="color:#64748b">LiFePO₄ (3.2 V nom.):</span> <strong>${tel.battery_voltage.toFixed(2)} V</strong> · <strong style="text-transform:capitalize">${tel.node_status.replace('_', ' ')}</strong></p>
+          </div>
+        `
+            : '';
+
         // Circle - more opaque for video visibility
         const circle = L.circle(zone.coordinates, {
           radius: 500,
@@ -149,6 +279,7 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: 
               <p><span style="color: #64748b;">Blockage Type:</span> ${zone.blockageType}</p>
               <p><span style="color: #64748b;">Flood Risk:</span> <span style="color: #ef4444; font-weight: 500; text-transform: capitalize;">${zone.severity}</span></p>
               <p style="color: #64748b; margin-top: 4px;">${zone.description}</p>
+              ${telHtml}
             </div>
             <button 
               onclick="window.dispatchCrisisAction('clearance', '${zone.id}')"
@@ -211,7 +342,7 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: 
         layersRef.current?.addLayer(marker);
       });
     }
-  }, [season, riskZones, boreholes, routes]);
+  }, [season, riskZones, boreholes, routes, sensorNodes]);
 
   // Set up dispatch handler on window
   useEffect(() => {
@@ -224,11 +355,11 @@ export function CrisisMap({ season, riskZones, boreholes, routes, onDispatch }: 
   }, [onDispatch]);
 
   return (
-    <div className="relative h-full w-full rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-50">
-      <div ref={mapContainerRef} className="h-full w-full opacity-95" />
+    <div className="relative h-full min-h-[12rem] w-full overflow-hidden rounded-md bg-muted/30">
+      <div ref={mapContainerRef} className="h-full w-full min-h-[12rem]" />
 
       {/* Map Legend */}
-      <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-sm border border-slate-200 p-4 z-[1000] min-w-[180px]">
+      <div className="absolute bottom-2 left-2 z-[1000] max-w-[min(100%,calc(100vw-5rem))] rounded-lg border border-slate-200 bg-white/95 p-3 shadow-sm backdrop-blur-sm sm:bottom-4 sm:left-4 sm:max-w-none sm:bg-white sm:p-4 sm:backdrop-blur-none min-w-0 sm:min-w-[180px]">
         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Map Legend</p>
         {season === 'wet' ? (
           <div className="space-y-2.5">

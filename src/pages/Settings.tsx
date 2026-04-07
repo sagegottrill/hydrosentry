@@ -12,14 +12,14 @@ import {
   RefreshCw,
   RotateCcw
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
+import { toast as sonnerToast } from 'sonner';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+import { PageHeader } from '@/components/dashboard/PageHeader';
 import { useSettings, type DataSource } from '@/hooks/useSettings';
 import { cn } from '@/lib/utils';
 
@@ -49,10 +49,8 @@ export default function Settings() {
     const result = await saveSettings();
 
     if (result.success) {
-      toast({
-        title: "✓ Settings Saved",
-        description: "Your configuration has been updated successfully.",
-        className: "bg-emerald-50 text-emerald-800 border-emerald-200",
+      sonnerToast.success('System Action Logged', {
+        description: 'Settings saved — configuration updated.',
       });
     } else {
       toast({
@@ -107,31 +105,20 @@ export default function Settings() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto py-8 px-6 space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 pb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3 tracking-tight">
-              <SettingsIcon className="h-6 w-6 text-[#005587]" />
-              System Configuration
-            </h1>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1.5 flex items-center">
-              Configure alert thresholds, notifications, and data sources
-              {hasUnsavedChanges && (
-                <span className="ml-3 text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                  • Unsaved changes
-                </span>
-              )}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleReset} className="border-slate-300 text-slate-700">
+      <div className="dashboard-shell">
+        <PageHeader
+          variant="compact"
+          icon={SettingsIcon}
+          title={hasUnsavedChanges ? 'System configuration · Unsaved' : 'System configuration'}
+          actions={
+            <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={handleReset} className="border-border">
               <RotateCcw className="h-4 w-4 mr-2" />
               Reset
             </Button>
             <Button
               onClick={handleSaveSettings}
-              className="bg-[#005587] hover:bg-[#00446b] text-white"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
               disabled={isSaving || !hasUnsavedChanges}
             >
               {isSaving ? (
@@ -141,31 +128,31 @@ export default function Settings() {
               )}
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
-          </div>
-        </div>
+            </div>
+          }
+        />
 
-        {/* Alert Thresholds */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-slate-100 rounded-xl overflow-hidden shadow-soft">
-          <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              <Gauge className="h-5 w-5 text-[#005587]" />
-              Alert Thresholds
+        {/* Alert Thresholds — two columns on large screens to reduce scroll */}
+        <div className="dashboard-card overflow-hidden">
+          <div className="border-b border-border bg-muted/20 px-4 py-3 sm:px-5">
+            <h2 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground sm:text-base">
+              <Gauge className="h-4 w-4 shrink-0 text-primary sm:h-[1.125rem] sm:w-[1.125rem]" />
+              Alert thresholds
             </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Configure sensitivity levels for automated alerts
+            <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+              Sensitivity for automated alerts
             </p>
           </div>
-          <div className="p-6 space-y-8">
-            {/* Flood Risk Sensitivity */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <Label className="text-sm font-bold text-slate-900">Flood Risk Sensitivity</Label>
-                  <p className="text-xs font-medium text-slate-500 mt-0.5 max-w-sm">
-                    Trigger alerts when flood probability exceeds threshold
+          <div className="grid gap-5 p-4 sm:gap-6 sm:p-5 lg:grid-cols-2 lg:gap-x-8 lg:gap-y-5">
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <Label className="text-sm font-semibold text-foreground">Flood risk</Label>
+                  <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+                    Flood probability threshold
                   </p>
                 </div>
-                <span className="text-3xl font-extrabold text-rose-600 bg-rose-50 px-4 py-1 rounded-lg border border-rose-100">
+                <span className="shrink-0 rounded-md border border-rose-200 bg-rose-50 px-2.5 py-1 text-lg font-semibold tabular-nums text-rose-600 sm:text-xl">
                   {settings.thresholds.floodSensitivity}%
                 </span>
               </div>
@@ -177,24 +164,21 @@ export default function Settings() {
                 step={5}
                 className="[&_[role=slider]]:bg-rose-600"
               />
-              <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                <span>Low (More Alerts)</span>
-                <span>High (Fewer Alerts)</span>
+              <div className="flex justify-between text-[0.6875rem] text-muted-foreground">
+                <span>More alerts</span>
+                <span>Fewer alerts</span>
               </div>
             </div>
 
-            <Separator className="bg-slate-100" />
-
-            {/* Drought Index (AED) */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <Label className="text-sm font-bold text-slate-900">Atmospheric Evaporative Demand (AED)</Label>
-                  <p className="text-xs font-medium text-slate-500 mt-0.5 max-w-sm">
-                    Drought severity threshold for borehole priority alerts
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <Label className="text-sm font-semibold text-foreground">AED (drought)</Label>
+                  <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+                    Borehole / drought alert level
                   </p>
                 </div>
-                <span className="text-3xl font-extrabold text-amber-600 bg-amber-50 px-4 py-1 rounded-lg border border-amber-100">
+                <span className="shrink-0 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-lg font-semibold tabular-nums text-amber-600 sm:text-xl">
                   {settings.thresholds.droughtIndex}%
                 </span>
               </div>
@@ -206,24 +190,21 @@ export default function Settings() {
                 step={5}
                 className="[&_[role=slider]]:bg-amber-500"
               />
-              <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              <div className="flex justify-between text-[0.6875rem] text-muted-foreground">
                 <span>Conservative</span>
                 <span>Aggressive</span>
               </div>
             </div>
 
-            <Separator className="bg-slate-100" />
-
-            {/* Conflict Risk Threshold */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <Label className="text-sm font-bold text-slate-900">Conflict Risk Prediction (CRPD)</Label>
-                  <p className="text-xs font-medium text-slate-500 mt-0.5 max-w-sm">
-                    Alert when herder-farmer conflict probability exceeds level
+            <div className="space-y-3 lg:col-span-2 lg:border-t lg:border-border lg:pt-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <Label className="text-sm font-semibold text-foreground">CRPD (conflict risk)</Label>
+                  <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+                    Herder–farmer conflict probability threshold
                   </p>
                 </div>
-                <span className="text-3xl font-extrabold text-[#005587] bg-sky-50 px-4 py-1 rounded-lg border border-sky-100">
+                <span className="shrink-0 rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1 text-lg font-semibold tabular-nums text-primary sm:text-xl">
                   {settings.thresholds.conflictThreshold}%
                 </span>
               </div>
@@ -233,38 +214,36 @@ export default function Settings() {
                 max={100}
                 min={0}
                 step={5}
-                className="[&_[role=slider]]:bg-[#005587]"
+                className="[&_[role=slider]]:bg-primary"
               />
-              <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                <span>Early Warning</span>
-                <span>Critical Only</span>
+              <div className="flex justify-between text-[0.6875rem] text-muted-foreground">
+                <span>Early warning</span>
+                <span>Critical only</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Notification Channels */}
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              <Bell className="h-5 w-5 text-[#005587]" />
-              Notification Channels
+        <div className="dashboard-card overflow-hidden">
+          <div className="border-b border-border bg-muted/20 px-4 py-3 sm:px-5">
+            <h2 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground sm:text-base">
+              <Bell className="h-4 w-4 shrink-0 text-primary sm:h-[1.125rem] sm:w-[1.125rem]" />
+              Notification channels
             </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Configure how alerts are delivered to stakeholders
+            <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+              How alerts reach stakeholders
             </p>
           </div>
-          <div className="p-0">
-            <div className="flex items-center justify-between p-5 border-b border-slate-100 hover:bg-slate-50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-lg bg-sky-50 flex items-center justify-center border border-sky-100">
-                  <MessageSquare className="h-4 w-4 text-[#005587]" />
+          <div className="divide-y divide-border">
+            <div className="flex flex-col gap-3 p-3.5 transition-colors hover:bg-muted/15 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-4 sm:py-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-primary/15 bg-primary/5">
+                  <MessageSquare className="h-3.5 w-3.5 text-primary" />
                 </div>
-                <div>
-                  <Label className="text-sm font-bold text-slate-900">SMS Alerts to BOSEPA</Label>
-                  <p className="text-xs font-medium text-slate-500 mt-0.5">
-                    Emergency alerts via bulk SMS gateway
-                  </p>
+                <div className="min-w-0">
+                  <Label className="text-sm font-semibold text-foreground">SMS to command center</Label>
+                  <p className="text-xs text-muted-foreground">Bulk SMS gateway</p>
                 </div>
               </div>
               <Switch
@@ -273,16 +252,14 @@ export default function Settings() {
               />
             </div>
 
-            <div className="flex items-center justify-between p-5 border-b border-slate-100 hover:bg-slate-50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center border border-emerald-100">
-                  <MessageSquare className="h-4 w-4 text-emerald-600" />
+            <div className="flex flex-col gap-3 p-3.5 transition-colors hover:bg-muted/15 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-4 sm:py-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-emerald-200 bg-emerald-50">
+                  <MessageSquare className="h-3.5 w-3.5 text-emerald-600" />
                 </div>
-                <div>
-                  <Label className="text-sm font-bold text-slate-900">WhatsApp to Community Leaders</Label>
-                  <p className="text-xs font-medium text-slate-500 mt-0.5">
-                    Real-time updates to ward focal points
-                  </p>
+                <div className="min-w-0">
+                  <Label className="text-sm font-semibold text-foreground">WhatsApp — community leaders</Label>
+                  <p className="text-xs text-muted-foreground">Ward focal points</p>
                 </div>
               </div>
               <Switch
@@ -291,16 +268,14 @@ export default function Settings() {
               />
             </div>
 
-            <div className="flex items-center justify-between p-5 border-b border-slate-100 hover:bg-slate-50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center border border-slate-200">
-                  <Bell className="h-4 w-4 text-slate-600" />
+            <div className="flex flex-col gap-3 p-3.5 transition-colors hover:bg-muted/15 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-4 sm:py-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40">
+                  <Bell className="h-3.5 w-3.5 text-muted-foreground" />
                 </div>
-                <div>
-                  <Label className="text-sm font-bold text-slate-900">Daily Email Digest</Label>
-                  <p className="text-xs font-medium text-slate-500 mt-0.5">
-                    Summary report to ministry officials
-                  </p>
+                <div className="min-w-0">
+                  <Label className="text-sm font-semibold text-foreground">Daily email digest</Label>
+                  <p className="text-xs text-muted-foreground">Ministry summary</p>
                 </div>
               </div>
               <Switch
@@ -309,16 +284,14 @@ export default function Settings() {
               />
             </div>
 
-            <div className="flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-lg bg-amber-50 flex items-center justify-center border border-amber-100">
-                  <Bell className="h-4 w-4 text-amber-600" />
+            <div className="flex flex-col gap-3 p-3.5 transition-colors hover:bg-muted/15 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-4 sm:py-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-amber-200 bg-amber-50">
+                  <Bell className="h-3.5 w-3.5 text-amber-600" />
                 </div>
-                <div>
-                  <Label className="text-sm font-bold text-slate-900">Push Notifications</Label>
-                  <p className="text-xs font-medium text-slate-500 mt-0.5">
-                    In-app alerts for critical events
-                  </p>
+                <div className="min-w-0">
+                  <Label className="text-sm font-semibold text-foreground">Push notifications</Label>
+                  <p className="text-xs text-muted-foreground">In-app critical alerts</p>
                 </div>
               </div>
               <Switch
@@ -330,67 +303,69 @@ export default function Settings() {
         </div>
 
         {/* Data Source Status */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 bg-slate-100 rounded-xl overflow-hidden shadow-soft gap-px">
-          <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                <Database className="h-5 w-5 text-[#005587]" />
-                Data Source Status
+        <div className="dashboard-card overflow-hidden">
+          <div className="flex flex-col gap-3 border-b border-border bg-muted/20 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div className="min-w-0">
+              <h2 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground sm:text-base">
+                <Database className="h-4 w-4 shrink-0 text-primary sm:h-[1.125rem] sm:w-[1.125rem]" />
+                Data sources | Cloud Enrichment Feeds (Command Center)
               </h2>
-              <p className="text-sm text-slate-500 mt-1">
-                Real-time connectivity status of integrated data feeds
+              <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+                Supplementary cloud APIs for command center visualization. Edge node anomaly detection remains 100% offline via LoRaWAN.
               </p>
             </div>
-            <Button variant="outline" size="sm" onClick={handleRefreshAll} className="bg-white border-slate-300">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh All
+            <Button variant="outline" size="sm" onClick={handleRefreshAll} className="h-8 shrink-0 border-border text-xs sm:h-9 sm:text-sm">
+              <RefreshCw className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              Refresh all
             </Button>
           </div>
-          <div className="p-0">
-            <div className="flex flex-col">
-              {dataSources.map((source, index) => (
-                <div key={source.id} className={cn("flex items-center justify-between p-5 hover:bg-slate-50 transition-colors", index < dataSources.length - 1 && "border-b border-slate-100")}>
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-lg bg-slate-50 flex items-center justify-center text-[#005587] border border-slate-200">
-                      {dataSourceIcons[source.id] || <Database className="h-4 w-4" />}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">{source.name}</p>
-                      <p className="text-xs font-medium text-slate-500 mt-0.5">{source.description}</p>
-                    </div>
+          <div className="divide-y divide-border">
+            {dataSources.map((source) => (
+              <div
+                key={source.id}
+                className="flex flex-col gap-2.5 p-3.5 transition-colors hover:bg-muted/15 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-4 sm:py-3"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted/30 text-primary">
+                    {dataSourceIcons[source.id] || <Database className="h-3.5 w-3.5" />}
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                      Synced {source.lastSync}
-                    </span>
-                    <div className={cn(
-                      "flex items-center gap-1.5 px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest border",
-                      source.status === 'online' && "bg-emerald-50 text-emerald-700 border-emerald-200",
-                      source.status === 'offline' && "bg-rose-50 text-rose-700 border-rose-200",
-                      source.status === 'degraded' && "bg-amber-50 text-amber-700 border-amber-200"
-                    )}>
-                      {getStatusIcon(source.status)}
-                      {source.status}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-slate-400 hover:text-[#005587] hover:bg-sky-50"
-                      onClick={() => handleRefreshSource(source.id, source.name)}
-                    >
-                      <RefreshCw className="h-4 w-4" />
-                    </Button>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">{source.name}</p>
+                    <p className="text-xs text-muted-foreground">{source.description}</p>
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="flex flex-wrap items-center gap-2 sm:justify-end sm:gap-3">
+                  <span className="text-[0.6875rem] text-muted-foreground sm:text-xs">Synced {source.lastSync}</span>
+                  <div
+                    className={cn(
+                      'flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs font-medium capitalize',
+                      source.status === 'online' && 'border-emerald-200 bg-emerald-50 text-emerald-800',
+                      source.status === 'offline' && 'border-rose-200 bg-rose-50 text-rose-800',
+                      source.status === 'degraded' && 'border-amber-200 bg-amber-50 text-amber-800',
+                    )}
+                  >
+                    {getStatusIcon(source.status)}
+                    {source.status}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                    onClick={() => handleRefreshSource(source.id, source.name)}
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* System Info */}
-        <div className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 py-4 opacity-70">
-          <p>HydroSentry Command Center v2.1.0</p>
-          <p className="mt-1">© 2026 Borno State Emergency Management Agency (BOSEPA)</p>
+        <div className="py-4 text-center text-[0.6875rem] leading-relaxed text-muted-foreground">
+          <p>HydroSentry v1.2.4-MVP</p>
+          <p className="mx-auto mt-0.5 max-w-xl">
+            © 2026 Orivon Edge. Released under MIT Open-Source License.
+          </p>
         </div>
       </div>
     </DashboardLayout>
