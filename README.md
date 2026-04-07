@@ -6,6 +6,8 @@
 [![Status: Live Prototype](https://img.shields.io/badge/Status-Live_Prototype-success.svg)]()
 [![Frontend: React/Vite](https://img.shields.io/badge/Frontend-React%2018-61DAFB.svg)]()
 
+**🔴 [Access the Live Command Center Demo Here](https://hydrosentry.vercel.app/)** *(Note for Reviewers: The live deployment currently utilizes simulated telemetry data for the Phase 1 Pilot to demonstrate the UI/UX without exposing active community hardware locations).*
+
 HydroSentry is the core geospatial module of **The Sahel Resilience Stack**, an open-source intelligence blueprint engineered for extreme resource-constrained environments. It provides high-availability flood and conflict resource mapping that remains resilient even during severe telecommunication blackouts.
 
 ## 📖 The Manifesto: Why This Exists
